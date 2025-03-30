@@ -25,7 +25,7 @@ def carica_dati():
 movimenti = carica_dati()
 
 # Navigazione con tabs
-menu = st.sidebar.radio("📁 Sezioni", ["Prima Nota", "Rendiconto ETS", "Dashboard", "Donazioni"])
+menu = st.sidebar.radio("📁 Sezioni", ["Prima Nota", "Rendiconto ETS", "Dashboard", "Donazioni", "Quote associative"])
 
 # -------------------
 # 1. PRIMA NOTA
@@ -94,3 +94,11 @@ elif menu == "Donazioni":
     st.dataframe(donazioni, use_container_width=True)
     totale_donazioni = donazioni['Importo'].sum()
     st.markdown(f"**Totale donazioni registrate:** {totale_donazioni:.2f} €")
+
+# -------------------
+# 5. QUOTE ASSOCIATIVE
+# -------------------
+elif menu == "Quote associative":
+    st.header("👥 Gestione Quote Associative")
+    st.info("🛠️ Integrazione con anagrafica soci in corso. In futuro: scadenze, ricevute, stato pagamenti.")
+    st.write("Puoi sincronizzare con il tuo foglio AppSheet per tracciare le quote versate e da versare.")
