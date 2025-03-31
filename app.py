@@ -1,6 +1,6 @@
-# ✅ App Streamlit completa con tutte le sezioni attive
+# ✅ App Streamlit completa e ottimizzata dopo normalizzazione importi
 # Include: Prima Nota, Dashboard, Rendiconto ETS, Donazioni, Quote associative, Nuovo Movimento
-# Estensioni: parser numeri corretto, export Excel, ricevute txt, login OAuth placeholder, librerie PDF suggerite
+# Estensioni: export Excel, ricevute txt, login OAuth placeholder, foglio Google pulito
 
 import streamlit as st
 import pandas as pd
@@ -8,7 +8,6 @@ import gspread
 import plotly.express as px
 from google.oauth2.service_account import Credentials
 from datetime import date
-import re
 import base64
 from io import BytesIO
 
@@ -72,11 +71,9 @@ client = gspread.authorize(creds)
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1_Dj2IcT1av_UXamj0sFAuslIQ-NYrRRAyI9A31eXwS4/edit#gid=0"
 SHEET_NAME = "prima_nota_2024"
 
+# ✅ Ora che la colonna Importo è stata normalizzata nel foglio Google, il parser può essere semplificato
+
 def pulisci_importo(val):
-    if isinstance(val, str):
-        val = val.replace("€", "").strip()
-        val = re.sub(r"(?<=\d)\.(?=\d{3}(,|$))", "", val)
-        val = val.replace(",", ".")
     return pd.to_numeric(val, errors="coerce")
 
 def carica_movimenti():
@@ -91,7 +88,6 @@ def carica_movimenti():
     if utente["ruolo"] == "tesoriere":
         df = df[df["Provincia"] == utente["provincia"]]
     return df
-
 # === Prima Nota ===
 if sezione_attiva == "Prima Nota":
     st.subheader("📁 Prima Nota")
