@@ -4,6 +4,7 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import date
+import plotly.express as px
 import re
 
 st.set_page_config(page_title="Contabilità ETS", layout="wide")
@@ -58,57 +59,29 @@ def carica_movimenti():
     df = pd.DataFrame(data)
     df.columns = df.columns.str.strip()
     df["Importo"] = df["Importo"].apply(pulisci_importo).fillna(0)
+    df["data"] = pd.to_datetime(df["data"], errors="coerce")
     return df
 
-def scrivi_movimento(riga):
-    sh = client.open_by_url(SHEET_URL)
-    worksheet = sh.worksheet(SHEET_NAME)
-    worksheet.append_row(riga)
-
-# === Pulsante per inserimento nuovo movimento ===
-show_form = False
-if utente["ruolo"] in ["superadmin", "tesoriere"]:
-    if st.button("📥 Inserisci un nuovo movimento"):
-        show_form = True
-
-if show_form:
-    with st.form("nuovo_movimento"):
-        data_mov = st.date_input("Data", value=date.today())
-        causale = st.selectbox("Causale", ["Donazione", "Spesa", "Quota associativa", "Altro"])
-        centro = st.text_input("Centro di costo / progetto")
-        importo = st.number_input("Importo (€)", min_value=0.01, step=0.01)
-        descrizione = st.text_input("Descrizione")
-        cassa = st.selectbox("Cassa", ["Banca", "Contanti"])
-        note = st.text_input("Note (facoltative)")
-        conferma = st.form_submit_button("Salva movimento")
-
-    if conferma:
-        nuova_riga = [
-            data_mov.strftime("%Y-%m-%d"), causale, centro, importo,
-            descrizione, cassa, utente["provincia"], note
-        ]
-        scrivi_movimento(nuova_riga)
-        st.success("✅ Movimento salvato correttamente!")
-
-st.markdown("---")
-
-# === Sezione: Prima Nota ===
-if sezione_attiva == "Prima Nota":
-    st.subheader("📁 Prima Nota - movimenti contabili")
+# === Sezione: Dashboard ===
+if sezione_attiva == "Dashboard":
+    st.subheader("📈 Dashboard mensile")
     df = carica_movimenti()
-    if not df.empty:
-        mese = st.selectbox("📅 Seleziona mese:", sorted(df['data'].str[:7].unique()))
-        centro_sel = st.selectbox("🏷️ Centro di costo:", ["Tutti"] + sorted(df['Centro di Costo'].dropna().unique()))
-        df_mese = df[df['data'].str.startswith(mese)]
-        if centro_sel != "Tutti":
-            df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
-        st.dataframe(df_mese)
-        tot_entrate = df_mese[df_mese['Importo'] > 0]['Importo'].sum()
-        tot_uscite = df_mese[df_mese['Importo'] < 0]['Importo'].sum()
-        saldo = tot_entrate + tot_uscite
-
-        st.markdown(f"### 💰 Totale entrate: **{tot_entrate:,.2f} €**")
-        st.markdown(f"### 💸 Totale uscite: **{abs(tot_uscite):,.2f} €**")
-        st.markdown(f"### 🧮 Saldo del mese: **{saldo:,.2f} €**")
+    if df.empty:
+        st.warning("Nessun dato disponibile.")
     else:
-        st.info("Nessun dato presente nel foglio.")
+        df["mese"] = df["data"].dt.to_period("M").astype(str)
+        entrate = df[df["Importo"] > 0].groupby("mese")["Importo"].sum().reset_index()
+        uscite = df[df["Importo"] < 0].groupby("mese")["Importo"].sum().abs().reset_index()
+
+        col1, col2 = st.columns(2)
+        with col1:
+            fig1 = px.bar(entrate, x="mese", y="Importo", title="Entrate per mese", labels={"Importo": "€"})
+            st.plotly_chart(fig1, use_container_width=True)
+        with col2:
+            fig2 = px.bar(uscite, x="mese", y="Importo", title="Uscite per mese", labels={"Importo": "€"})
+            st.plotly_chart(fig2, use_container_width=True)
+
+        st.subheader("📊 Totale per centro di costo")
+        centro = df.groupby("Centro di Costo")["Importo"].sum().reset_index()
+        fig3 = px.bar(centro, x="Centro di Costo", y="Importo", title="Bilancio per centro di costo", labels={"Importo": "€"})
+        st.plotly_chart(fig3, use_container_width=True)
