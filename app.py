@@ -47,8 +47,8 @@ SHEET_NAME = "prima_nota_2024"
 def pulisci_importo(val):
     if isinstance(val, str):
         val = val.replace("€", "").strip()
-        val = re.sub(r"\.", "", val)      # rimuove separatore migliaia
-        val = val.replace(",", ".")       # converte virgola in punto
+        val = re.sub(r"(?<=\d)\.(?=\d{3}(,|$))", "", val)  # rimuove solo i punti delle migliaia
+        val = val.replace(",", ".")
     return pd.to_numeric(val, errors="coerce")
 
 def carica_movimenti():
@@ -105,8 +105,10 @@ if sezione_attiva == "Prima Nota":
         st.dataframe(df_mese)
         tot_entrate = df_mese[df_mese['Importo'] > 0]['Importo'].sum()
         tot_uscite = df_mese[df_mese['Importo'] < 0]['Importo'].sum()
-        st.markdown(f"**Totale entrate:** {tot_entrate:.2f} €")
-        st.markdown(f"**Totale uscite:** {abs(tot_uscite):.2f} €")
-        st.markdown(f"**Saldo del mese:** {tot_entrate + tot_uscite:.2f} €")
+        saldo = tot_entrate + tot_uscite
+
+        st.markdown(f"### 💰 Totale entrate: **{tot_entrate:,.2f} €**")
+        st.markdown(f"### 💸 Totale uscite: **{abs(tot_uscite):,.2f} €**")
+        st.markdown(f"### 🧮 Saldo del mese: **{saldo:,.2f} €**")
     else:
         st.info("Nessun dato presente nel foglio.")
