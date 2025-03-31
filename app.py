@@ -50,7 +50,7 @@ SHEET_NAME = "prima_nota_2024"
 def pulisci_importo(val):
     if isinstance(val, str):
         val = val.replace("€", "").strip()
-        val = re.sub(r"(?<=\\d)\\.(?=\\d{3}(,|$))", "", val)
+        val = re.sub(r"(?<=\d)\.(?=\d{3}(,|$))", "", val)  # SOLO punti migliaia
         val = val.replace(",", ".")
     return pd.to_numeric(val, errors="coerce")
 
@@ -64,7 +64,7 @@ def carica_movimenti():
     df["data"] = pd.to_datetime(df["data"], errors="coerce")
     df = df[df["data"].notna()]  # PATCH: rimuove righe senza data valida
     return df
-    
+
 def scrivi_movimento(riga):
     sh = client.open_by_url(SHEET_URL)
     worksheet = sh.worksheet(SHEET_NAME)
