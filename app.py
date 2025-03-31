@@ -98,7 +98,6 @@ if sezione_attiva == "Prima Nota":
 
     st.write("Tipi di dati letti:")
     st.write(df["Importo"].apply(lambda x: f"{x} → {type(x)}").head(10))
-
     st.subheader("📁 Prima Nota")
     df = carica_movimenti()
     if not df.empty:
