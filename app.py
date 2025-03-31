@@ -4,6 +4,7 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import date
+import re
 
 st.set_page_config(page_title="Contabilità ETS", layout="wide")
 st.title("📊 Gestionale Contabilità ETS 2024")
@@ -43,21 +44,20 @@ SHEET_URL = "https://docs.google.com/spreadsheets/d/1_Dj2IcT1av_UXamj0sFAuslIQ-N
 SHEET_NAME = "prima_nota_2024"
 
 # === Funzioni ===
+def pulisci_importo(val):
+    if isinstance(val, str):
+        val = val.replace("€", "").strip()
+        val = re.sub(r"\.", "", val)      # rimuove separatore migliaia
+        val = val.replace(",", ".")       # converte virgola in punto
+    return pd.to_numeric(val, errors="coerce")
+
 def carica_movimenti():
     sh = client.open_by_url(SHEET_URL)
     worksheet = sh.worksheet(SHEET_NAME)
     data = worksheet.get_all_records()
     df = pd.DataFrame(data)
     df.columns = df.columns.str.strip()
-    # Parser importo robusto: rimuove migliaia e converte virgola in punto
-    df['Importo'] = (
-        df['Importo']
-        .astype(str)
-        .str.replace(".", "", regex=False)    # rimuove migliaia
-        .str.replace(",", ".", regex=False)   # converte decimali
-        .str.strip()
-    )
-    df['Importo'] = pd.to_numeric(df['Importo'], errors='coerce').fillna(0)
+    df["Importo"] = df["Importo"].apply(pulisci_importo).fillna(0)
     return df
 
 def scrivi_movimento(riga):
