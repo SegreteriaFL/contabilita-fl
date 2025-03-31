@@ -9,7 +9,7 @@ st.title("📊 Gestionale Contabilità ETS 2024")
 # === Autenticazione Google Sheets ===
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/spreadsheets",
          "https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/drive.file"]
-creds = Credentials.from_service_account_file("credentials.json", scopes=scope)
+import json\ncreds_dict = json.loads(st.secrets["GOOGLE_SERVICE_ACCOUNT"])\ncreds = Credentials.from_service_account_info(creds_dict, scopes=scope)
 client = gspread.authorize(creds)
 
 # === Config ===
