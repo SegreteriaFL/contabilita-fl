@@ -49,15 +49,15 @@ def carica_movimenti():
     data = worksheet.get_all_records()
     df = pd.DataFrame(data)
     df.columns = df.columns.str.strip()
+    # Parser importo robusto: rimuove migliaia e converte virgola in punto
     df['Importo'] = (
-    df['Importo']
-    .astype(str)
-    .str.replace(".", "", regex=False)    # rimuove separatore migliaia
-    .str.replace(",", ".", regex=False)   # converte virgola in punto
-    .str.strip()
+        df['Importo']
+        .astype(str)
+        .str.replace(".", "", regex=False)    # rimuove migliaia
+        .str.replace(",", ".", regex=False)   # converte decimali
+        .str.strip()
     )
     df['Importo'] = pd.to_numeric(df['Importo'], errors='coerce').fillna(0)
-
     return df
 
 def scrivi_movimento(riga):
