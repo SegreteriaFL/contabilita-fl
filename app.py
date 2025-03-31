@@ -99,11 +99,6 @@ def carica_movimenti():
         df = df[df["Provincia"] == utente["provincia"]]
     return df
 
-# Le sezioni sono tutte attive e funzionanti come da versione precedente
-# Ora supportano PDF reali, export e sicurezza sulla colonna Provincia
-# OAuth reale in sviluppo, AppSheet previsto
-
-
 # === Prima Nota ===
 
 if sezione_attiva == "Prima Nota":
