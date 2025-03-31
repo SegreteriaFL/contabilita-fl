@@ -65,31 +65,6 @@ def carica_movimenti():
     df = df[df["data"].notna()]  # PATCH: rimuove righe senza data valida
     return df
 
-def scrivi_movimento(riga):
-    sh = client.open_by_url(SHEET_URL)
-    worksheet = sh.worksheet(SHEET_NAME)
-    worksheet.append_row(riga)
-
-# === Form nuovo movimento ===
-if utente["ruolo"] in ["superadmin", "tesoriere"]:
-    if st.button("📥 Inserisci un nuovo movimento"):
-        with st.form("nuovo_movimento"):
-            data_mov = st.date_input("Data", value=date.today())
-            causale = st.selectbox("Causale", ["Donazione", "Spesa", "Quota associativa", "Altro"])
-            centro = st.text_input("Centro di costo / progetto")
-            importo = st.number_input("Importo (€)", min_value=0.01, step=0.01)
-            descrizione = st.text_input("Descrizione")
-            cassa = st.selectbox("Cassa", ["Banca", "Contanti"])
-            note = st.text_input("Note (facoltative)")
-            conferma = st.form_submit_button("Salva movimento")
-        if conferma:
-            nuova_riga = [
-                data_mov.strftime("%Y-%m-%d"), causale, centro, importo,
-                descrizione, cassa, utente["provincia"], note
-            ]
-            scrivi_movimento(nuova_riga)
-            st.success("✅ Movimento salvato correttamente!")
-
 # === Sezione Prima Nota ===
 if sezione_attiva == "Prima Nota":
     st.subheader("📁 Prima Nota")
@@ -100,12 +75,16 @@ if sezione_attiva == "Prima Nota":
         df_mese = df[df['data'].dt.strftime("%Y-%m") == mese]
         if centro_sel != "Tutti":
             df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
-        st.dataframe(df_mese)
-        entrate = df_mese[df_mese['Importo'] > 0]['Importo'].sum()
-        uscite = df_mese[df_mese['Importo'] < 0]['Importo'].sum()
-        st.markdown(f"**Totale entrate:** {entrate:,.2f} €")
-        st.markdown(f"**Totale uscite:** {abs(uscite):,.2f} €")
-        st.markdown(f"**Saldo:** {entrate + uscite:,.2f} €")
+
+        df_mese = df_mese.copy()
+        df_mese["Importo (€)"] = df_mese["Importo"].apply(lambda x: f"{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+
+        st.dataframe(df_mese.drop(columns=["Importo"]))
+        entrate = df_mese[df_mese['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float) > 0]['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float).sum()
+        uscite = df_mese[df_mese['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float) < 0]['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float).sum()
+        st.markdown(f"**Totale entrate:** {entrate:,.2f} €".replace(",", "X").replace(".", ",").replace("X", "."))
+        st.markdown(f"**Totale uscite:** {abs(uscite):,.2f} €".replace(",", "X").replace(".", ",").replace("X", "."))
+        st.markdown(f"**Saldo:** {entrate + uscite:,.2f} €".replace(",", "X").replace(".", ",").replace("X", "."))
     else:
         st.info("Nessun movimento disponibile.")
 
