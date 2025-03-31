@@ -1,8 +1,10 @@
+
 import streamlit as st
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import date
+import json
 
 st.set_page_config(page_title="Contabilità ETS", layout="wide")
 st.title("📊 Gestionale Contabilità ETS 2024")
@@ -30,7 +32,7 @@ if utente["ruolo"] in ["superadmin", "tesoriere"]:
     menu.insert(1, "➕ Nuovo movimento")
 scelta = st.sidebar.radio("Sezioni", menu)
 
-# === Connessione sicura a Google Sheets ===
+# === Connessione a Google Sheets via secrets ===
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -51,6 +53,7 @@ def carica_movimenti():
     data = worksheet.get_all_records()
     df = pd.DataFrame(data)
     df.columns = df.columns.str.strip()
+    df['Importo'] = pd.to_numeric(df['Importo'], errors='coerce').fillna(0)
     return df
 
 def scrivi_movimento(riga):
@@ -83,16 +86,17 @@ if scelta == "➕ Nuovo movimento" and utente["ruolo"] in ["superadmin", "tesori
 elif scelta == "Prima Nota":
     st.subheader("📁 Prima Nota - movimenti contabili")
     df = carica_movimenti()
-    mese = st.selectbox("📅 Seleziona mese:", sorted(df['data'].str[:7].unique()))
-    centro_sel = st.selectbox("🏷️ Centro di costo:", ["Tutti"] + sorted(df['Centro di Costo'].dropna().unique()))
-
-    df_mese = df[df['data'].str.startswith(mese)]
-    if centro_sel != "Tutti":
-        df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
-
-    st.dataframe(df_mese)
-    tot_entrate = df_mese[df_mese['Importo'] > 0]['Importo'].sum()
-    tot_uscite = df_mese[df_mese['Importo'] < 0]['Importo'].sum()
-    st.markdown(f"**Totale entrate:** {tot_entrate:.2f} €")
-    st.markdown(f"**Totale uscite:** {abs(tot_uscite):.2f} €")
-    st.markdown(f"**Saldo del mese:** {tot_entrate + tot_uscite:.2f} €")
+    if not df.empty:
+        mese = st.selectbox("📅 Seleziona mese:", sorted(df['data'].str[:7].unique()))
+        centro_sel = st.selectbox("🏷️ Centro di costo:", ["Tutti"] + sorted(df['Centro di Costo'].dropna().unique()))
+        df_mese = df[df['data'].str.startswith(mese)]
+        if centro_sel != "Tutti":
+            df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
+        st.dataframe(df_mese)
+        tot_entrate = df_mese[df_mese['Importo'] > 0]['Importo'].sum()
+        tot_uscite = df_mese[df_mese['Importo'] < 0]['Importo'].sum()
+        st.markdown(f"**Totale entrate:** {tot_entrate:.2f} €")
+        st.markdown(f"**Totale uscite:** {abs(tot_uscite):.2f} €")
+        st.markdown(f"**Saldo del mese:** {tot_entrate + tot_uscite:.2f} €")
+    else:
+        st.info("Nessun dato presente nel foglio.")
