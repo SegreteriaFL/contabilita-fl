@@ -1,6 +1,7 @@
 # ✅ App Streamlit completa con tutte le sezioni attive
 # Prima Nota, Dashboard, Rendiconto ETS, Donazioni, Quote associative
-# Con parser importi corretto, grafici, login simulato e modulo nuovo movimento
+# Con parser importi corretto, grafici, login simulato, modulo nuovo movimento,
+# formattazione uniforme, filtri per donazioni, e controllo multi-provincia
 
 import streamlit as st
 import pandas as pd
@@ -76,6 +77,8 @@ def carica_movimenti():
     df["Importo"] = df["Importo"].apply(pulisci_importo).fillna(0)
     df["data"] = pd.to_datetime(df["data"], errors="coerce")
     df = df[df["data"].notna()]
+    if utente["ruolo"] == "tesoriere":
+        df = df[df["Provincia"] == utente["provincia"]]
     return df
 
 # === Sezione Prima Nota ===
@@ -88,8 +91,6 @@ if sezione_attiva == "Prima Nota":
         df_mese = df[df['data'].dt.strftime("%Y-%m") == mese]
         if centro_sel != "Tutti":
             df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
-
-        df_mese = df_mese.copy()
         st.dataframe(df_mese.drop(columns=["Importo"]).assign(**{"Importo (€)": df_mese["Importo"].apply(format_currency)}))
         entrate = df_mese[df_mese["Importo"] > 0]["Importo"].sum()
         uscite = df_mese[df_mese["Importo"] < 0]["Importo"].sum()
@@ -113,8 +114,7 @@ if sezione_attiva == "Dashboard":
         with col2:
             st.plotly_chart(px.bar(uscite, x="mese", y="Importo", title="Uscite per mese"), use_container_width=True)
         totali_cdc = df.groupby("Centro di Costo")["Importo"].sum().reset_index()
-        totali_cdc["Importo"] = totali_cdc["Importo"].apply(format_currency)
-        st.dataframe(totali_cdc)
+        st.dataframe(totali_cdc.assign(**{"Importo (€)": totali_cdc["Importo"].apply(format_currency)}).drop(columns=["Importo"]))
     else:
         st.info("Nessun dato disponibile.")
 
@@ -125,12 +125,17 @@ if sezione_attiva == "Rendiconto ETS":
     if not df.empty:
         sezione_a = df[df["Importo"] > 0].groupby("Causale")["Importo"].sum().reset_index()
         sezione_b = df[df["Importo"] < 0].groupby("Causale")["Importo"].sum().abs().reset_index()
+        total_a = sezione_a["Importo"].sum()
+        total_b = sezione_b["Importo"].sum()
         sezione_a["Importo"] = sezione_a["Importo"].apply(format_currency)
         sezione_b["Importo"] = sezione_b["Importo"].apply(format_currency)
         st.markdown("### Sezione A - Entrate")
         st.dataframe(sezione_a)
+        st.markdown(f"**Totale entrate:** {format_currency(total_a)}")
         st.markdown("### Sezione B - Uscite")
         st.dataframe(sezione_b)
+        st.markdown(f"**Totale uscite:** {format_currency(total_b)}")
+        st.markdown(f"**Saldo operativo:** {format_currency(total_a - total_b)}")
     else:
         st.info("Nessun dato disponibile.")
 
@@ -138,19 +143,33 @@ if sezione_attiva == "Rendiconto ETS":
 if sezione_attiva == "Donazioni":
     st.subheader("❤️ Donazioni")
     df = carica_movimenti()
-    df_don = df[df["Causale"] == "Donazione"]
-    if not df_don.empty:
-        df_don["Importo"] = df_don["Importo"].apply(format_currency)
-        st.dataframe(df_don)
-        totale = df_don["Importo"].str.replace(".", "", regex=False).str.replace(",", ".", regex=False).astype(float).sum()
+    if not df.empty:
+        df_don = df[df["Causale"] == "Donazione"]
+        mesi = sorted(df_don["data"].dt.strftime("%Y-%m").unique())
+        mesi.insert(0, "Tutti")
+        sel_mese = st.selectbox("📅 Filtro mese:", mesi)
+        if sel_mese != "Tutti":
+            df_don = df_don[df_don["data"].dt.strftime("%Y-%m") == sel_mese]
+        centri = ["Tutti"] + sorted(df_don["Centro di Costo"].dropna().unique())
+        centro_sel = st.selectbox("🏷️ Centro di costo:", centri)
+        if centro_sel != "Tutti":
+            df_don = df_don[df_don["Centro di Costo"] == centro_sel]
+        st.dataframe(df_don.drop(columns=["Importo"]).assign(**{"Importo (€)": df_don["Importo"].apply(format_currency)}))
+        totale = df_don["Importo"].sum()
         st.markdown(f"**Totale donazioni:** {format_currency(totale)}")
     else:
         st.info("Nessuna donazione registrata.")
 
 # === Sezione Quote associative ===
 if sezione_attiva == "Quote associative":
-    st.subheader("📟 Quote associative")
-    st.info("Funzionalità in sviluppo: collegamento con AppSheet previsto.")
+    st.subheader("🧾 Quote associative")
+    dati_quote = pd.DataFrame([
+        {"Nome": "Giulia Bianchi", "Anno": 2024, "Importo": 25, "Pagato": "Sì"},
+        {"Nome": "Carlo Neri", "Anno": 2024, "Importo": 25, "Pagato": "No"},
+    ])
+    dati_quote["Importo (€)"] = dati_quote["Importo"].apply(format_currency)
+    st.dataframe(dati_quote.drop(columns=["Importo"]))
+    st.info("Dati fittizi. In attesa di collegamento con AppSheet.")
 
 # === Pagina Nuovo Movimento ===
 if pagina == "nuovo_movimento":
@@ -163,9 +182,10 @@ if pagina == "nuovo_movimento":
         descrizione = st.text_area("Descrizione")
         cassa = st.selectbox("Metodo di pagamento", ["Contanti", "Bonifico", "Carta", "Altro"])
         note = st.text_input("Note")
+        provincia = utente["provincia"] if utente["ruolo"] == "tesoriere" else "Tutte"
         submitted = st.form_submit_button("✅ Inserisci")
     if submitted:
-        new_row = [str(data_mov), causale, centro, importo, descrizione, cassa, note]
+        new_row = [str(data_mov), causale, centro, importo, descrizione, cassa, note, provincia]
         try:
             sh = client.open_by_url(SHEET_URL)
             ws = sh.worksheet(SHEET_NAME)
