@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import gspread
@@ -7,8 +8,12 @@ st.set_page_config(page_title="Contabilità ETS", layout="wide")
 st.title("📊 Gestionale Contabilità ETS 2024")
 
 # === Autenticazione Google Sheets ===
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/spreadsheets",
-         "https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/drive.file"]
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/drive.file"
+]
 creds = Credentials.from_service_account_file("credentials.json", scopes=scope)
 client = gspread.authorize(creds)
 
@@ -68,5 +73,9 @@ elif menu == "➕ Nuovo movimento":
                 aggiungi_movimento(ws, data, causale, centro, importo, descrizione, cassa, note)
                 st.success("✅ Movimento aggiunto con successo!")
                 st.balloons()
+                # Ricarica i dati aggiornati
+                df, ws = carica_movimenti()
+                st.header("📋 Movimenti registrati (aggiornati)")
+                st.dataframe(df, use_container_width=True)
             except Exception as e:
                 st.error(f"Errore durante il salvataggio: {e}")
