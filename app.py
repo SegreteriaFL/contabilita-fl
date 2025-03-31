@@ -1,6 +1,6 @@
 # ✅ App Streamlit completa con tutte le sezioni attive
 # Prima Nota, Dashboard, Rendiconto ETS, Donazioni, Quote associative
-# Con parser importi corretto, grafici, e login simulato
+# Con parser importi corretto, grafici, login simulato e modulo nuovo movimento
 
 import streamlit as st
 import pandas as pd
@@ -12,6 +12,13 @@ import re
 
 st.set_page_config(page_title="Contabilità ETS", layout="wide")
 st.title("📊 Gestionale Contabilità ETS 2024")
+
+# === Funzione formattazione importi ===
+def format_currency(val):
+    try:
+        return f"{float(val):,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
+    except:
+        return val
 
 # === Login simulato ===
 utenti = [
@@ -34,6 +41,12 @@ if utente['provincia'] != "Tutte":
 sezioni = ["Prima Nota", "Dashboard", "Rendiconto ETS", "Donazioni", "Quote associative"]
 sezione_attiva = st.sidebar.radio("📂 Sezioni", sezioni)
 
+# === Pulsante Nuovo Movimento solo per ruoli autorizzati ===
+pagina = "home"
+if utente["ruolo"] in ["tesoriere", "superadmin"]:
+    if st.sidebar.button("➕ Nuovo movimento"):
+        pagina = "nuovo_movimento"
+
 # === Connessione a Google Sheets ===
 scope = [
     "https://spreadsheets.google.com/feeds",
@@ -50,8 +63,8 @@ SHEET_NAME = "prima_nota_2024"
 def pulisci_importo(val):
     if isinstance(val, str):
         val = val.replace("€", "").strip()
-        val = re.sub(r"(?<=\d)\.(?=\d{3}(,|$))", "", val)  # rimuove solo separatori migliaia
-        val = val.replace(",", ".")  # converte virgola in punto decimale
+        val = re.sub(r"(?<=\d)\.(?=\d{3}(,|$))", "", val)
+        val = val.replace(",", ".")
     return pd.to_numeric(val, errors="coerce")
 
 def carica_movimenti():
@@ -62,7 +75,7 @@ def carica_movimenti():
     df.columns = df.columns.str.strip()
     df["Importo"] = df["Importo"].apply(pulisci_importo).fillna(0)
     df["data"] = pd.to_datetime(df["data"], errors="coerce")
-    df = df[df["data"].notna()]  # PATCH: rimuove righe senza data valida
+    df = df[df["data"].notna()]
     return df
 
 # === Sezione Prima Nota ===
@@ -77,14 +90,12 @@ if sezione_attiva == "Prima Nota":
             df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
 
         df_mese = df_mese.copy()
-        df_mese["Importo (€)"] = df_mese["Importo"].apply(lambda x: f"{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
-
-        st.dataframe(df_mese.drop(columns=["Importo"]))
-        entrate = df_mese[df_mese['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float) > 0]['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float).sum()
-        uscite = df_mese[df_mese['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float) < 0]['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float).sum()
-        st.markdown(f"**Totale entrate:** {entrate:,.2f} €".replace(",", "X").replace(".", ",").replace("X", "."))
-        st.markdown(f"**Totale uscite:** {abs(uscite):,.2f} €".replace(",", "X").replace(".", ",").replace("X", "."))
-        st.markdown(f"**Saldo:** {entrate + uscite:,.2f} €".replace(",", "X").replace(".", ",").replace("X", "."))
+        st.dataframe(df_mese.drop(columns=["Importo"]).assign(**{"Importo (€)": df_mese["Importo"].apply(format_currency)}))
+        entrate = df_mese[df_mese["Importo"] > 0]["Importo"].sum()
+        uscite = df_mese[df_mese["Importo"] < 0]["Importo"].sum()
+        st.markdown(f"**Totale entrate:** {format_currency(entrate)}")
+        st.markdown(f"**Totale uscite:** {format_currency(abs(uscite))}")
+        st.markdown(f"**Saldo:** {format_currency(entrate + uscite)}")
     else:
         st.info("Nessun movimento disponibile.")
 
@@ -101,8 +112,9 @@ if sezione_attiva == "Dashboard":
             st.plotly_chart(px.bar(entrate, x="mese", y="Importo", title="Entrate per mese"), use_container_width=True)
         with col2:
             st.plotly_chart(px.bar(uscite, x="mese", y="Importo", title="Uscite per mese"), use_container_width=True)
-        st.plotly_chart(px.bar(df.groupby("Centro di Costo")["Importo"].sum().reset_index(),
-                               x="Centro di Costo", y="Importo", title="Totale per centro di costo"), use_container_width=True)
+        totali_cdc = df.groupby("Centro di Costo")["Importo"].sum().reset_index()
+        totali_cdc["Importo"] = totali_cdc["Importo"].apply(format_currency)
+        st.dataframe(totali_cdc)
     else:
         st.info("Nessun dato disponibile.")
 
@@ -113,6 +125,8 @@ if sezione_attiva == "Rendiconto ETS":
     if not df.empty:
         sezione_a = df[df["Importo"] > 0].groupby("Causale")["Importo"].sum().reset_index()
         sezione_b = df[df["Importo"] < 0].groupby("Causale")["Importo"].sum().abs().reset_index()
+        sezione_a["Importo"] = sezione_a["Importo"].apply(format_currency)
+        sezione_b["Importo"] = sezione_b["Importo"].apply(format_currency)
         st.markdown("### Sezione A - Entrate")
         st.dataframe(sezione_a)
         st.markdown("### Sezione B - Uscite")
@@ -126,12 +140,36 @@ if sezione_attiva == "Donazioni":
     df = carica_movimenti()
     df_don = df[df["Causale"] == "Donazione"]
     if not df_don.empty:
+        df_don["Importo"] = df_don["Importo"].apply(format_currency)
         st.dataframe(df_don)
-        st.markdown(f"**Totale donazioni:** {df_don['Importo'].sum():,.2f} €")
+        totale = df_don["Importo"].str.replace(".", "", regex=False).str.replace(",", ".", regex=False).astype(float).sum()
+        st.markdown(f"**Totale donazioni:** {format_currency(totale)}")
     else:
         st.info("Nessuna donazione registrata.")
 
 # === Sezione Quote associative ===
 if sezione_attiva == "Quote associative":
-    st.subheader("🧾 Quote associative")
+    st.subheader("📟 Quote associative")
     st.info("Funzionalità in sviluppo: collegamento con AppSheet previsto.")
+
+# === Pagina Nuovo Movimento ===
+if pagina == "nuovo_movimento":
+    st.subheader("➕ Inserisci nuovo movimento contabile")
+    with st.form("inserimento"):
+        data_mov = st.date_input("Data", value=date.today())
+        causale = st.text_input("Causale")
+        centro = st.text_input("Centro di Costo")
+        importo = st.number_input("Importo", step=0.01, format="%.2f")
+        descrizione = st.text_area("Descrizione")
+        cassa = st.selectbox("Metodo di pagamento", ["Contanti", "Bonifico", "Carta", "Altro"])
+        note = st.text_input("Note")
+        submitted = st.form_submit_button("✅ Inserisci")
+    if submitted:
+        new_row = [str(data_mov), causale, centro, importo, descrizione, cassa, note]
+        try:
+            sh = client.open_by_url(SHEET_URL)
+            ws = sh.worksheet(SHEET_NAME)
+            ws.append_row(new_row)
+            st.success("Movimento inserito correttamente!")
+        except Exception as e:
+            st.error(f"Errore durante l'inserimento: {e}")
