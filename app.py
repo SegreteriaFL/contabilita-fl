@@ -4,7 +4,6 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import date
-import json
 
 st.set_page_config(page_title="Contabilità ETS", layout="wide")
 st.title("📊 Gestionale Contabilità ETS 2024")
@@ -26,14 +25,17 @@ st.sidebar.markdown(f"**Ruolo:** {utente['ruolo']}")
 if utente['provincia'] != "Tutte":
     st.sidebar.markdown(f"**Provincia:** {utente['provincia']}")
 
-# === Connessione a Google Sheets via secrets ===
+# === Sidebar menu ===
+sezioni = ["Prima Nota", "Dashboard", "Rendiconto ETS", "Donazioni", "Quote associative"]
+sezione_attiva = st.sidebar.radio("📂 Sezioni", sezioni)
+
+# === Connessione a Google Sheets ===
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/drive.file",
 ]
-
 creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
 client = gspread.authorize(creds)
 
@@ -47,7 +49,6 @@ def carica_movimenti():
     data = worksheet.get_all_records()
     df = pd.DataFrame(data)
     df.columns = df.columns.str.strip()
-    # Fix: conversione importi con virgola → punto
     df['Importo'] = (
         df['Importo']
         .astype(str)
@@ -63,16 +64,14 @@ def scrivi_movimento(riga):
     worksheet = sh.worksheet(SHEET_NAME)
     worksheet.append_row(riga)
 
-# === Mostra il pulsante prominente per nuovo movimento ===
+# === Pulsante per inserimento nuovo movimento ===
 show_form = False
 if utente["ruolo"] in ["superadmin", "tesoriere"]:
-    st.markdown("### ➕ Nuovo movimento")
     if st.button("📥 Inserisci un nuovo movimento"):
         show_form = True
 
 if show_form:
     with st.form("nuovo_movimento"):
-        st.subheader("📝 Compila i dettagli")
         data_mov = st.date_input("Data", value=date.today())
         causale = st.selectbox("Causale", ["Donazione", "Spesa", "Quota associativa", "Altro"])
         centro = st.text_input("Centro di costo / progetto")
@@ -93,19 +92,20 @@ if show_form:
 st.markdown("---")
 
 # === Sezione: Prima Nota ===
-st.subheader("📁 Prima Nota - movimenti contabili")
-df = carica_movimenti()
-if not df.empty:
-    mese = st.selectbox("📅 Seleziona mese:", sorted(df['data'].str[:7].unique()))
-    centro_sel = st.selectbox("🏷️ Centro di costo:", ["Tutti"] + sorted(df['Centro di Costo'].dropna().unique()))
-    df_mese = df[df['data'].str.startswith(mese)]
-    if centro_sel != "Tutti":
-        df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
-    st.dataframe(df_mese)
-    tot_entrate = df_mese[df_mese['Importo'] > 0]['Importo'].sum()
-    tot_uscite = df_mese[df_mese['Importo'] < 0]['Importo'].sum()
-    st.markdown(f"**Totale entrate:** {tot_entrate:.2f} €")
-    st.markdown(f"**Totale uscite:** {abs(tot_uscite):.2f} €")
-    st.markdown(f"**Saldo del mese:** {tot_entrate + tot_uscite:.2f} €")
-else:
-    st.info("Nessun dato presente nel foglio.")
+if sezione_attiva == "Prima Nota":
+    st.subheader("📁 Prima Nota - movimenti contabili")
+    df = carica_movimenti()
+    if not df.empty:
+        mese = st.selectbox("📅 Seleziona mese:", sorted(df['data'].str[:7].unique()))
+        centro_sel = st.selectbox("🏷️ Centro di costo:", ["Tutti"] + sorted(df['Centro di Costo'].dropna().unique()))
+        df_mese = df[df['data'].str.startswith(mese)]
+        if centro_sel != "Tutti":
+            df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
+        st.dataframe(df_mese)
+        tot_entrate = df_mese[df_mese['Importo'] > 0]['Importo'].sum()
+        tot_uscite = df_mese[df_mese['Importo'] < 0]['Importo'].sum()
+        st.markdown(f"**Totale entrate:** {tot_entrate:.2f} €")
+        st.markdown(f"**Totale uscite:** {abs(tot_uscite):.2f} €")
+        st.markdown(f"**Saldo del mese:** {tot_entrate + tot_uscite:.2f} €")
+    else:
+        st.info("Nessun dato presente nel foglio.")
