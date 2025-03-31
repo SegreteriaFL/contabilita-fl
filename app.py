@@ -50,8 +50,8 @@ SHEET_NAME = "prima_nota_2024"
 def pulisci_importo(val):
     if isinstance(val, str):
         val = val.replace("€", "").strip()
-        val = re.sub(r"(?<=\d)\.(?=\d{3}(,|$))", "", val)  # SOLO punti migliaia
-        val = val.replace(",", ".")
+        val = re.sub(r"(?<=\d)\.(?=\d{3}(,|$))", "", val)  # rimuove solo separatori migliaia
+        val = val.replace(",", ".")  # converte virgola in punto decimale
     return pd.to_numeric(val, errors="coerce")
 
 def carica_movimenti():
