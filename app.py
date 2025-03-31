@@ -21,7 +21,7 @@ client = gspread.authorize(creds)
 
 # === Config ===
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1_Dj2IcT1av_UXamj0sFAuslIQ-NYrRRAyI9A31eXwS4/edit#gid=0"
-SHEET_NAME = "Foglio1"
+SHEET_NAME = "prima_nota_2024"
 
 # === Lettura dati ===
 def carica_movimenti():
