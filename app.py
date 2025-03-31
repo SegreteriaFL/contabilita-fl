@@ -1,6 +1,7 @@
-# ✅ App Streamlit completa e ottimizzata dopo normalizzazione importi
-# Include: Prima Nota, Dashboard, Rendiconto ETS, Donazioni, Quote associative, Nuovo Movimento
-# Estensioni: export Excel, ricevute txt, login OAuth placeholder, foglio Google pulito
+# ✅ App Streamlit completa, pulita e pronta per avanzare
+# Funziona con dati corretti (decimali con punto), senza parser superflui
+# Include: Prima Nota, Dashboard, Donazioni, Rendiconto ETS, Quote associative, Nuovo Movimento
+# Estensioni attive: export Excel, ricevute txt, login OAuth placeholder
 
 import streamlit as st
 import pandas as pd
@@ -8,20 +9,18 @@ import gspread
 import plotly.express as px
 from google.oauth2.service_account import Credentials
 from datetime import date
-import base64
 from io import BytesIO
 
 st.set_page_config(page_title="Contabilità ETS", layout="wide")
 st.title("📊 Gestionale Contabilità ETS 2024")
 
-# === Funzione formattazione importi ===
+# === Utility ===
 def format_currency(val):
     try:
         return f"{float(val):,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
     except:
         return val
 
-# === Funzioni utility ===
 def download_excel(df, nome_file):
     output = BytesIO()
     df.to_excel(output, index=False)
@@ -33,8 +32,8 @@ def download_txt(content, filename):
 def genera_ricevuta(d):
     return f"Ricevuta per {format_currency(d['Importo'])} ricevuta da {d['Causale']} il {d['data'].date()} - CENTRO: {d['Centro di Costo']}"
 
-# === Login simulato con placeholder OAuth ===
-st.warning("🔐 Login reale OAuth con Google in sviluppo. Attualmente login simulato.")
+# === Login simulato (OAuth reale in sviluppo) ===
+st.warning("🔐 Login OAuth reale in arrivo. Attualmente login simulato.")
 utenti = [
     {"nome": "Mario Rossi", "email": "mario@fl.org", "ruolo": "superadmin", "provincia": "Tutte"},
     {"nome": "Lucia Bianchi", "email": "lucia@fl.org", "ruolo": "supervisore", "provincia": "Tutte"},
@@ -43,15 +42,13 @@ utenti = [
     {"nome": "Franca Gialli", "email": "franca@fl.org", "ruolo": "lettore", "provincia": "Pisa"},
 ]
 
-nominativi = [f"{u['nome']} ({u['ruolo']})" for u in utenti]
-utente_sel = st.sidebar.selectbox("👤 Seleziona utente:", nominativi)
+utente_sel = st.sidebar.selectbox("👤 Seleziona utente:", [f"{u['nome']} ({u['ruolo']})" for u in utenti])
 utente = next(u for u in utenti if f"{u['nome']} ({u['ruolo']})" == utente_sel)
 
 st.sidebar.markdown(f"**Ruolo:** {utente['ruolo']}")
 if utente['provincia'] != "Tutte":
     st.sidebar.markdown(f"**Provincia:** {utente['provincia']}")
 
-# === Menu sezioni ===
 sezioni = ["Prima Nota", "Dashboard", "Rendiconto ETS", "Donazioni", "Quote associative"]
 sezione_attiva = st.sidebar.radio("📂 Sezioni", sezioni)
 pagina = "home"
@@ -59,7 +56,7 @@ if utente["ruolo"] in ["tesoriere", "superadmin"]:
     if st.sidebar.button("➕ Nuovo movimento"):
         pagina = "nuovo_movimento"
 
-# === Connessione a Google Sheets ===
+# === Connessione Google Sheets ===
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -68,26 +65,21 @@ scope = [
 ]
 creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
 client = gspread.authorize(creds)
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1_Dj2IcT1av_UXamj0sFAuslIQ-NYrRRAyI9A31eXwS4/edit#gid=0"
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1_Dj2IcT1av_UXamj0sFAuslIQ-NYrRRAyI9A31eXwS4/edit"
 SHEET_NAME = "prima_nota_2024"
 
-# ✅ Ora che la colonna Importo è stata normalizzata nel foglio Google, il parser può essere semplificato
-
-def pulisci_importo(val):
-    return pd.to_numeric(val, errors="coerce")
-
 def carica_movimenti():
-    sh = client.open_by_url(SHEET_URL)
-    worksheet = sh.worksheet(SHEET_NAME)
-    data = worksheet.get_all_records()
-    df = pd.DataFrame(data)
+    df = pd.DataFrame(client.open_by_url(SHEET_URL).worksheet(SHEET_NAME).get_all_records())
     df.columns = df.columns.str.strip()
-    df["Importo"] = df["Importo"].apply(pulisci_importo).fillna(0)
+    df["Importo"] = pd.to_numeric(df["Importo"], errors="coerce").fillna(0)
     df["data"] = pd.to_datetime(df["data"], errors="coerce")
     df = df[df["data"].notna()]
     if utente["ruolo"] == "tesoriere":
         df = df[df["Provincia"] == utente["provincia"]]
     return df
+
+# 🔄 Le sezioni funzionali (Prima Nota, Dashboard, Donazioni...) rimangono intatte sotto e possono essere ampliate
+# 👉 Pronte per procedere con ricevute PDF, accesso OAuth reale, AppSheet per quote, export PDF rendiconto
 
 # === Prima Nota ===
 
