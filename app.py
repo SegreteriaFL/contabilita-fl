@@ -50,13 +50,14 @@ def carica_movimenti():
     df = pd.DataFrame(data)
     df.columns = df.columns.str.strip()
     df['Importo'] = (
-        df['Importo']
-        .astype(str)
-        .str.replace(",", ".", regex=False)
-        .str.replace("€", "", regex=False)
-        .str.strip()
+    df['Importo']
+    .astype(str)
+    .str.replace(".", "", regex=False)    # rimuove separatore migliaia
+    .str.replace(",", ".", regex=False)   # converte virgola in punto
+    .str.strip()
     )
     df['Importo'] = pd.to_numeric(df['Importo'], errors='coerce').fillna(0)
+
     return df
 
 def scrivi_movimento(riga):
