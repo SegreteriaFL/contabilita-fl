@@ -77,7 +77,6 @@ def pulisci_importo(val):
     return pd.to_numeric(val, errors="coerce")
 
 def carica_movimenti():
-    st.write(df[["Importo"]].head(10))
     sh = client.open_by_url(SHEET_URL)
     worksheet = sh.worksheet(SHEET_NAME)
     data = worksheet.get_all_records()
@@ -89,7 +88,10 @@ def carica_movimenti():
     if utente["ruolo"] == "tesoriere":
         df = df[df["Provincia"] == utente["provincia"]]
     return df
+    st.write(df[["Importo"]].head(10))
+
 # === Prima Nota ===
+
 if sezione_attiva == "Prima Nota":
     st.subheader("📁 Prima Nota")
     df = carica_movimenti()
