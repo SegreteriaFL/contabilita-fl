@@ -62,8 +62,9 @@ def carica_movimenti():
     df.columns = df.columns.str.strip()
     df["Importo"] = df["Importo"].apply(pulisci_importo).fillna(0)
     df["data"] = pd.to_datetime(df["data"], errors="coerce")
+    df = df[df["data"].notna()]  # PATCH: rimuove righe senza data valida
     return df
-
+    
 def scrivi_movimento(riga):
     sh = client.open_by_url(SHEET_URL)
     worksheet = sh.worksheet(SHEET_NAME)
