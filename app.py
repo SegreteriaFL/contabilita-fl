@@ -1,5 +1,8 @@
 import streamlit as st
 import pandas as pd
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import date
 
 st.set_page_config(page_title="Contabilità ETS", layout="wide")
 st.title("📊 Gestionale Contabilità ETS 2024")
@@ -21,90 +24,75 @@ st.sidebar.markdown(f"**Ruolo:** {utente['ruolo']}")
 if utente['provincia'] != "Tutte":
     st.sidebar.markdown(f"**Provincia:** {utente['provincia']}")
 
-@st.cache_data
-def carica_dati():
-    url = "https://docs.google.com/spreadsheets/d/1_Dj2IcT1av_UXamj0sFAuslIQ-NYrRRAyI9A31eXwS4/export?format=csv"
-    df = pd.read_csv(url)
+# === Menu dinamico ===
+menu = ["Prima Nota", "Dashboard", "Rendiconto ETS", "Donazioni", "Quote associative"]
+if utente["ruolo"] in ["superadmin", "tesoriere"]:
+    menu.insert(1, "➕ Nuovo movimento")
+scelta = st.sidebar.radio("Sezioni", menu)
+
+# === Connessione sicura a Google Sheets ===
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/drive.file",
+]
+
+creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
+client = gspread.authorize(creds)
+
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1_Dj2IcT1av_UXamj0sFAuslIQ-NYrRRAyI9A31eXwS4/edit#gid=0"
+SHEET_NAME = "prima_nota_2024"
+
+# === Funzioni ===
+def carica_movimenti():
+    sh = client.open_by_url(SHEET_URL)
+    worksheet = sh.worksheet(SHEET_NAME)
+    data = worksheet.get_all_records()
+    df = pd.DataFrame(data)
     df.columns = df.columns.str.strip()
-    df['Importo'] = (
-        df['Importo']
-        .astype(str)
-        .str.replace('€', '', regex=False)
-        .str.replace(',', '.', regex=False)
-        .str.strip()
-    )
-    df['Importo'] = pd.to_numeric(df['Importo'], errors='coerce')
-    df['data'] = pd.to_datetime(df['data'], errors='coerce')
-    df = df.dropna(subset=['data', 'Importo'])
     return df
 
-movimenti = carica_dati()
+def scrivi_movimento(riga):
+    sh = client.open_by_url(SHEET_URL)
+    worksheet = sh.worksheet(SHEET_NAME)
+    worksheet.append_row(riga)
 
-# Se tesoriere, filtra i dati per provincia
-if utente['ruolo'] == 'tesoriere':
-    movimenti = movimenti[movimenti['Centro di Costo'].str.contains(utente['provincia'], case=False, na=False)]
+# === Sezione: Nuovo Movimento ===
+if scelta == "➕ Nuovo movimento" and utente["ruolo"] in ["superadmin", "tesoriere"]:
+    st.subheader("➕ Inserisci un nuovo movimento")
+    with st.form("nuovo_movimento"):
+        data_mov = st.date_input("Data", value=date.today())
+        causale = st.selectbox("Causale", ["Donazione", "Spesa", "Quota associativa", "Altro"])
+        centro = st.text_input("Centro di costo / progetto")
+        importo = st.number_input("Importo (€)", min_value=0.01, step=0.01)
+        descrizione = st.text_input("Descrizione")
+        cassa = st.selectbox("Cassa", ["Banca", "Contanti"])
+        note = st.text_input("Note (facoltative)")
+        conferma = st.form_submit_button("Salva movimento")
 
-# Menu dinamico in base al ruolo
-menu_base = ["Prima Nota", "Dashboard"]
-menu_esteso = menu_base + ["Rendiconto ETS", "Donazioni"]
-menu_admin = menu_esteso + ["Quote associative"]
-menu = st.sidebar.radio("📁 Sezioni", menu_admin if utente['ruolo'] in ["superadmin"]
-                        else menu_esteso if utente['ruolo'] in ["supervisore", "tesoriere"]
-                        else menu_base)
+    if conferma:
+        nuova_riga = [
+            data_mov.strftime("%Y-%m-%d"), causale, centro, importo,
+            descrizione, cassa, utente["provincia"], note
+        ]
+        scrivi_movimento(nuova_riga)
+        st.success("✅ Movimento salvato correttamente!")
 
-# === SEZIONI ===
+# === Sezione: Prima Nota ===
+elif scelta == "Prima Nota":
+    st.subheader("📁 Prima Nota - movimenti contabili")
+    df = carica_movimenti()
+    mese = st.selectbox("📅 Seleziona mese:", sorted(df['data'].str[:7].unique()))
+    centro_sel = st.selectbox("🏷️ Centro di costo:", ["Tutti"] + sorted(df['Centro di Costo'].dropna().unique()))
 
-if menu == "Prima Nota":
-    st.header("📒 Prima Nota - movimenti contabili")
-    col1, col2 = st.columns(2)
-    mesi = movimenti['data'].dt.strftime('%Y-%m').sort_values().unique()
-    centri = movimenti['Centro di Costo'].dropna().unique()
-    mese_sel = col1.selectbox("📆 Seleziona mese:", mesi)
-    centro_sel = col2.selectbox("🏷️ Centro di costo:", ["Tutti"] + list(centri))
-
-    df_filt = movimenti[movimenti['data'].dt.strftime('%Y-%m') == mese_sel]
+    df_mese = df[df['data'].str.startswith(mese)]
     if centro_sel != "Tutti":
-        df_filt = df_filt[df_filt['Centro di Costo'] == centro_sel]
+        df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
 
-    st.dataframe(df_filt, use_container_width=True)
-    entrate = df_filt[df_filt['Importo'] > 0]['Importo'].sum()
-    uscite = df_filt[df_filt['Importo'] < 0]['Importo'].sum()
-    saldo = entrate + uscite
-    st.markdown(f"**Totale entrate:** {entrate:.2f} €")
-    st.markdown(f"**Totale uscite:** {uscite:.2f} €")
-    st.markdown(f"**Saldo del mese:** {saldo:.2f} €")
-
-elif menu == "Rendiconto ETS":
-    st.header("📑 Rendiconto per cassa ETS (Sezione A & B)")
-    sezione_a = movimenti[movimenti['Importo'] > 0].groupby("Causale")["Importo"].sum().reset_index()
-    sezione_b = movimenti[movimenti['Importo'] < 0].groupby("Causale")["Importo"].sum().reset_index()
-    st.subheader("📥 Sezione A – Entrate")
-    st.dataframe(sezione_a, use_container_width=True)
-    st.subheader("📤 Sezione B – Uscite")
-    st.dataframe(sezione_b, use_container_width=True)
-    totale_a = sezione_a['Importo'].sum()
-    totale_b = sezione_b['Importo'].sum()
-    st.markdown(f"**Totale entrate (A):** {totale_a:.2f} €")
-    st.markdown(f"**Totale uscite (B):** {totale_b:.2f} €")
-    st.markdown(f"**Saldo finale:** {totale_a + totale_b:.2f} €")
-
-elif menu == "Dashboard":
-    st.header("📈 Cruscotto finanziario sintetico")
-    mensili = movimenti.groupby(movimenti['data'].dt.to_period('M'))['Importo'].sum().reset_index()
-    mensili['data'] = mensili['data'].astype(str)
-    st.line_chart(mensili.set_index('data'))
-    st.subheader("📊 Ripartizione per centro di costo")
-    per_centro = movimenti.groupby("Centro di Costo")["Importo"].sum().reset_index()
-    st.bar_chart(per_centro.set_index("Centro di Costo"))
-
-elif menu == "Donazioni":
-    st.header("🎁 Elenco donazioni registrate")
-    donazioni = movimenti[movimenti['Causale'].str.lower().str.contains("donazione")]
-    st.dataframe(donazioni, use_container_width=True)
-    totale_donazioni = donazioni['Importo'].sum()
-    st.markdown(f"**Totale donazioni registrate:** {totale_donazioni:.2f} €")
-
-elif menu == "Quote associative":
-    st.header("👥 Gestione Quote Associative")
-    st.info("🛠️ Integrazione con anagrafica soci in corso. In futuro: scadenze, ricevute, stato pagamenti.")
-    st.write("Puoi sincronizzare con il tuo foglio AppSheet per tracciare le quote versate e da versare.")
+    st.dataframe(df_mese)
+    tot_entrate = df_mese[df_mese['Importo'] > 0]['Importo'].sum()
+    tot_uscite = df_mese[df_mese['Importo'] < 0]['Importo'].sum()
+    st.markdown(f"**Totale entrate:** {tot_entrate:.2f} €")
+    st.markdown(f"**Totale uscite:** {abs(tot_uscite):.2f} €")
+    st.markdown(f"**Saldo del mese:** {tot_entrate + tot_uscite:.2f} €")
