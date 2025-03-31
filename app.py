@@ -88,11 +88,17 @@ def carica_movimenti():
     if utente["ruolo"] == "tesoriere":
         df = df[df["Provincia"] == utente["provincia"]]
     return df
-    st.write(df[["Importo"]].head(10))
 
 # === Prima Nota ===
 
 if sezione_attiva == "Prima Nota":
+    st.subheader("🧪 Debug Importi")
+st.write("Valori grezzi di 'Importo':")
+st.write(df["Importo"].head(10))
+
+st.write("Tipi di dati letti:")
+st.write(df["Importo"].apply(lambda x: f"{x} → {type(x)}").head(10))
+
     st.subheader("📁 Prima Nota")
     df = carica_movimenti()
     if not df.empty:
