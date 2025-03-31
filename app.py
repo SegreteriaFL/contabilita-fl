@@ -47,7 +47,7 @@ SHEET_NAME = "prima_nota_2024"
 def pulisci_importo(val):
     if isinstance(val, str):
         val = val.replace("€", "").strip()
-        val = re.sub(r"(?<=\d)\.(?=\d{3}(,|$))", "", val)  # rimuove solo i punti delle migliaia
+        val = re.sub(r"(?<=\d)\.(?=\d{3}(,|$))", "", val)
         val = val.replace(",", ".")
     return pd.to_numeric(val, errors="coerce")
 
