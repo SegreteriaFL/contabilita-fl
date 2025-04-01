@@ -9,6 +9,7 @@ from datetime import date
 from io import BytesIO
 from fpdf import FPDF
 from streamlit_option_menu import option_menu
+import tempfile
 
 st.set_page_config(page_title="Contabilità ETS", layout="wide")
 
@@ -51,9 +52,10 @@ def download_pdf(text, nome_file):
             pdf.cell(200, 10, txt=line.encode("latin-1", "replace").decode("latin-1"), ln=True)
         except:
             pdf.cell(200, 10, txt="[Errore codifica]", ln=True)
-    output = BytesIO()
-    pdf.output(output)
-    st.download_button("📄 Scarica PDF", data=output.getvalue(), file_name=nome_file, mime="application/pdf")
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        pdf.output(tmp.name)
+        tmp.seek(0)
+        st.download_button("📄 Scarica PDF", data=tmp.read(), file_name=nome_file, mime="application/pdf")
 
 def genera_ricevuta_pdf(d):
     lines = [
@@ -129,6 +131,9 @@ def carica_movimenti():
     if utente["ruolo"] == "tesoriere":
         df = df[df["Provincia"] == utente["provincia"]]
     return df
+
+# Le SEZIONI operative vanno qui (come da blocco precedente)
+
 
 # === Le sezioni operative ===
 # === Sezione: Prima Nota ===
