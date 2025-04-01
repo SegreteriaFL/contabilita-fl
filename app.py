@@ -1,4 +1,4 @@
-# ✅ Gestionale Contabilità ETS — Versione SCURA completa e corretta
+# ✅ Gestionale Contabilità ETS — Versione SCURA - funge ma no privilegi user
 
 import streamlit as st
 import pandas as pd
