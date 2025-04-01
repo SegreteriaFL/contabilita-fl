@@ -1,8 +1,8 @@
-streamlit
-pandas
+streamlit>=1.30
+pandas>=2.0
 gspread
 plotly
 google-auth
 openpyxl
-fpdf
+fpdf>=1.7.2
 streamlit-option-menu
