@@ -1,4 +1,4 @@
-# ✅ Gestionale Contabilità ETS — Versione SCURA - funge ma no privilegi user
+# ✅ Gestionale Contabilità ETS — Versione SCURA - funge ma con controllo accessi e mobile-friendly
 
 import streamlit as st
 import pandas as pd
@@ -13,15 +13,26 @@ import tempfile
 
 st.set_page_config(page_title="Contabilità ETS", layout="wide")
 
+# 🌙 Tema scuro con miglioramenti responsive base (senza downgrade)
 st.markdown("""
     <style>
-        .block-container {
+        html, body, .main, .block-container {
             background-color: #1e1e1e;
             color: #ffffff;
         }
         .stButton > button, .stDownloadButton > button {
             background-color: #4CAF50;
             color: white;
+            width: 100%;
+        }
+        .css-1d391kg, .css-1v0mbdj {  /* Sidebar responsive fix */
+            overflow-wrap: break-word;
+        }
+        @media (max-width: 768px) {
+            .block-container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
         }
     </style>
 """, unsafe_allow_html=True)
@@ -132,8 +143,7 @@ def carica_movimenti():
         df = df[df["Provincia"] == utente["provincia"]]
     return df
 
-# Le SEZIONI operative vanno qui (come da blocco precedente)
-
+# Le SEZIONI operative andranno qui con controlli per ruolo
 
 # === Le sezioni operative ===
 # === Sezione: Prima Nota ===
