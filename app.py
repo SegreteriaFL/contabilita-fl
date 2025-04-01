@@ -129,13 +129,14 @@ if sezione_attiva == "Prima Nota":
         if centro_sel != "Tutti":
             df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
 
+        df_mese = df_mese.copy()
         df_mese["Data"] = df_mese["data"].dt.strftime("%d/%m/%Y")
         df_mese["Importo (€)"] = df_mese["Importo"].apply(format_currency)
 
         st.dataframe(df_mese.drop(columns=["data", "Importo"]))
 
-        entrate = df_mese[df_mese['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float) > 0]['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float).sum()
-        uscite = df_mese[df_mese['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float) < 0]['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float).sum()
+        entrate = df_mese[df_mese["Importo"] > 0]["Importo"].sum()
+        uscite = df_mese[df_mese["Importo"] < 0]["Importo"].sum()
 
         st.success(f"💰 Entrate: {format_currency(entrate)}")
         st.error(f"💸 Uscite: {format_currency(abs(uscite))}")
