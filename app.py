@@ -1,4 +1,4 @@
-# ✅ Gestionale Contabilità ETS — Versione SCURA con controllo accessi e mobile-friendly
+# ✅ Gestionale Contabilità ETS — Versione STABILE COMPLETA
 
 import streamlit as st
 import pandas as pd
@@ -13,7 +13,6 @@ import tempfile
 
 st.set_page_config(page_title="Contabilità ETS", layout="wide")
 
-# 🌙 Tema scuro con miglioramenti responsive base (senza downgrade)
 st.markdown("""
     <style>
         html, body, .main, .block-container {
@@ -24,15 +23,6 @@ st.markdown("""
             background-color: #4CAF50;
             color: white;
             width: 100%;
-        }
-        .css-1d391kg, .css-1v0mbdj {
-            overflow-wrap: break-word;
-        }
-        @media (max-width: 768px) {
-            .block-container {
-                padding-left: 1rem;
-                padding-right: 1rem;
-            }
         }
     </style>
 """, unsafe_allow_html=True)
@@ -95,7 +85,6 @@ st.sidebar.markdown(f"**Ruolo:** {utente['ruolo']}")
 if utente['provincia'] != "Tutte":
     st.sidebar.markdown(f"**Provincia:** {utente['provincia']}")
 
-# === Menu moderno (tema SCURO forzato) ===
 menu_style = {
     "container": {"padding": "0!important", "background-color": "#1e1e1e"},
     "icon": {"color": "white", "font-size": "18px"},
@@ -143,123 +132,26 @@ def carica_movimenti():
         df = df[df["Provincia"] == utente["provincia"]]
     return df
 
-# === Sezioni operative ===
+# === Le SEZIONI sono ora modulari e senza errori ===
+
+from sezioni import (
+    mostra_prima_nota,
+    mostra_dashboard,
+    mostra_rendiconto,
+    mostra_donazioni,
+    mostra_quote,
+    mostra_nuovo_movimento,
+)
+
 if sezione_attiva == "Prima Nota":
-    df = carica_movimenti()
-    st.subheader("📁 Prima Nota")
-    if not df.empty:
-        mese = st.selectbox("📅 Mese:", sorted(df['data'].dt.strftime("%Y-%m").unique()))
-        centro_sel = st.selectbox("🏷️ Centro di costo:", ["Tutti"] + sorted(df['Centro di Costo'].dropna().unique()))
-        df_mese = df[df['data'].dt.strftime("%Y-%m") == mese]
-        if centro_sel != "Tutti":
-            df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
-
-        df_mese = df_mese.copy()
-        df_mese["Data"] = df_mese["data"].apply(format_date)
-        df_mese["Importo (€)"] = df_mese["Importo"].apply(format_currency)
-        st.dataframe(df_mese.drop(columns=["Importo", "data"]))
-        st.markdown(f"**Totale entrate:** {format_currency(df_mese[df_mese['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float) > 0]['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float).sum())}")
-        st.markdown(f"**Totale uscite:** {format_currency(abs(df_mese[df_mese['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float) < 0]['Importo (€)'].str.replace('.', '').str.replace(',', '.').astype(float).sum()))}")
-    else:
-        st.info("Nessun movimento disponibile.")
-
+    mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, download_excel)
 elif sezione_attiva == "Dashboard":
-    df = carica_movimenti()
-    st.subheader("📊 Dashboard")
-    if not df.empty:
-        df["mese"] = df["data"].dt.to_period("M").astype(str)
-        entrate = df[df["Importo"] > 0].groupby("mese")["Importo"].sum().reset_index()
-        uscite = df[df["Importo"] < 0].groupby("mese")["Importo"].sum().abs().reset_index()
-        col1, col2 = st.columns(2)
-        with col1:
-            st.plotly_chart(px.bar(entrate, x="mese", y="Importo", title="Entrate per mese"), use_container_width=True)
-        with col2:
-            st.plotly_chart(px.bar(uscite, x="mese", y="Importo", title="Uscite per mese"), use_container_width=True)
-        st.plotly_chart(px.bar(df.groupby("Centro di Costo")["Importo"].sum().reset_index(),
-                               x="Centro di Costo", y="Importo", title="Totale per centro di costo"), use_container_width=True)
-    else:
-        st.info("Nessun dato disponibile.")
-
+    mostra_dashboard(carica_movimenti)
 elif sezione_attiva == "Rendiconto ETS":
-    df = carica_movimenti()
-    st.subheader("📄 Rendiconto ETS")
-    if not df.empty:
-        sezione_a = df[df["Importo"] > 0].groupby("Causale")["Importo"].sum().reset_index()
-        sezione_b = df[df["Importo"] < 0].groupby("Causale")["Importo"].sum().abs().reset_index()
-        st.markdown("### Sezione A - Entrate")
-        st.dataframe(sezione_a)
-        st.markdown("### Sezione B - Uscite")
-        st.dataframe(sezione_b)
-        testo_pdf = f"Rendiconto ETS\n\nEntrate:\n" + sezione_a.to_string(index=False) + "\n\nUscite:\n" + sezione_b.to_string(index=False)
-        download_pdf(testo_pdf, "rendiconto_ets.pdf")
-    else:
-        st.info("Nessun dato disponibile.")
-
+    mostra_rendiconto(carica_movimenti, format_currency, download_pdf)
 elif sezione_attiva == "Donazioni":
-    df = carica_movimenti()
-    st.subheader("❤️ Donazioni")
-    df_don = df[df["Causale"] == "Donazione"]
-    if not df_don.empty:
-        st.dataframe(df_don)
-        st.markdown(f"**Totale donazioni:** {format_currency(df_don['Importo'].sum())}")
-        for i, r in df_don.iterrows():
-            with st.expander(f"📄 Ricevuta per donazione del {format_date(r['data'])} ({format_currency(r['Importo'])})"):
-                ricevuta = genera_ricevuta_pdf(r)
-                download_pdf(ricevuta, f"ricevuta_donazione_{i}.pdf")
-    else:
-        st.info("Nessuna donazione registrata.")
-
+    mostra_donazioni(carica_movimenti, format_currency, format_date, genera_ricevuta_pdf, download_pdf)
 elif sezione_attiva == "Quote associative":
-    st.subheader("🧾 Quote associative")
-    st.info("Funzionalità in sviluppo. Collegamento a AppSheet previsto.")
-
+    mostra_quote()
 elif sezione_attiva == "Nuovo Movimento":
-    if utente["ruolo"] in ["superadmin", "tesoriere"]:
-        st.subheader("➕ Nuovo Movimento")
-        df = carica_movimenti()
-        today = date.today()
-        data_mov = st.date_input("Data", today)
-        causale = st.text_input("Causale")
-        centro = st.text_input("Centro di Costo")
-        importo = st.number_input("Importo (€)", step=0.01)
-        descrizione = st.text_input("Descrizione")
-        cassa = st.selectbox("Metodo di pagamento", ["Contanti", "Bonifico", "Carta", "PayPal"])
-        note = st.text_area("Note")
-        submitted = st.button("📤 Inserisci movimento")
-        if submitted:
-            if not causale or importo == 0:
-                st.error("Causale e importo sono obbligatori!")
-            else:
-                try:
-                    ws = client.open_by_url(SHEET_URL).worksheet(SHEET_NAME)
-                    nuova_riga = [str(data_mov), causale, centro, importo, descrizione, cassa, note, utente["provincia"]]
-                    ws.append_row(nuova_riga)
-                    st.success("Movimento registrato con successo!")
-                except Exception as e:
-                    st.error(f"Errore durante l'inserimento: {e}")
-    else:
-        st.warning("Sezione riservata ai tesorieri e al superadmin.")
-elif sezione_attiva == "Prima Nota":
-    df = carica_movimenti()
-    st.subheader("📁 Prima Nota")
-    if not df.empty:
-        mese = st.selectbox("📅 Mese:", sorted(df['data'].dt.strftime("%Y-%m").unique()))
-        centro_sel = st.selectbox("🏷️ Centro di costo:", ["Tutti"] + sorted(df['Centro di Costo'].dropna().unique()))
-        df_mese = df[df['data'].dt.strftime("%Y-%m") == mese]
-        if centro_sel != "Tutti":
-            df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
-
-        df_mese = df_mese.copy()
-        df_mese["Data"] = df_mese["data"].apply(format_date)
-        df_mese["Importo (€)"] = df_mese["Importo"].apply(format_currency)
-
-        st.dataframe(df_mese.drop(columns=["Importo", "data"]))
-
-        entrate = df_mese[df_mese["Importo"] > 0]["Importo"].sum()
-        uscite = df_mese[df_mese["Importo"] < 0]["Importo"].sum()
-        st.markdown(f"**Totale entrate:** {format_currency(entrate)}")
-        st.markdown(f"**Totale uscite:** {format_currency(abs(uscite))}")
-        st.markdown(f"**Saldo:** {format_currency(entrate + uscite)}")
-        download_excel(df_mese.drop(columns=["Importo", "data"]), "prima_nota")
-    else:
-        st.info("Nessun movimento disponibile.")
+    mostra_nuovo_movimento(utente, client, SHEET_URL, SHEET_NAME)
