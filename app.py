@@ -239,3 +239,27 @@ elif sezione_attiva == "Nuovo Movimento":
                     st.error(f"Errore durante l'inserimento: {e}")
     else:
         st.warning("Sezione riservata ai tesorieri e al superadmin.")
+elif sezione_attiva == "Prima Nota":
+    df = carica_movimenti()
+    st.subheader("📁 Prima Nota")
+    if not df.empty:
+        mese = st.selectbox("📅 Mese:", sorted(df['data'].dt.strftime("%Y-%m").unique()))
+        centro_sel = st.selectbox("🏷️ Centro di costo:", ["Tutti"] + sorted(df['Centro di Costo'].dropna().unique()))
+        df_mese = df[df['data'].dt.strftime("%Y-%m") == mese]
+        if centro_sel != "Tutti":
+            df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
+
+        df_mese = df_mese.copy()
+        df_mese["Data"] = df_mese["data"].apply(format_date)
+        df_mese["Importo (€)"] = df_mese["Importo"].apply(format_currency)
+
+        st.dataframe(df_mese.drop(columns=["Importo", "data"]))
+
+        entrate = df_mese[df_mese["Importo"] > 0]["Importo"].sum()
+        uscite = df_mese[df_mese["Importo"] < 0]["Importo"].sum()
+        st.markdown(f"**Totale entrate:** {format_currency(entrate)}")
+        st.markdown(f"**Totale uscite:** {format_currency(abs(uscite))}")
+        st.markdown(f"**Saldo:** {format_currency(entrate + uscite)}")
+        download_excel(df_mese.drop(columns=["Importo", "data"]), "prima_nota")
+    else:
+        st.info("Nessun movimento disponibile.")
