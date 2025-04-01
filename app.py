@@ -52,7 +52,6 @@ def genera_ricevuta_pdf(d):
     return "\n".join(lines)
 
 # === Login simulato ===
-st.info("🔐 Login simulato. OAuth Google reale in sviluppo.")
 utenti = [
     {"nome": "Mario Rossi", "email": "mario@fl.org", "ruolo": "superadmin", "provincia": "Tutte"},
     {"nome": "Lucia Bianchi", "email": "lucia@fl.org", "ruolo": "supervisore", "provincia": "Tutte"},
@@ -60,7 +59,6 @@ utenti = [
     {"nome": "Anna Neri", "email": "anna.firenze@fl.org", "ruolo": "tesoriere", "provincia": "Firenze"},
     {"nome": "Franca Gialli", "email": "franca@fl.org", "ruolo": "lettore", "provincia": "Pisa"},
 ]
-
 utente_sel = st.sidebar.selectbox("👤 Seleziona utente:", [f"{u['nome']} ({u['ruolo']})" for u in utenti])
 utente = next(u for u in utenti if f"{u['nome']} ({u['ruolo']})" == utente_sel)
 
@@ -91,14 +89,35 @@ with st.sidebar:
         default_index=0,
         styles=menu_style
     )
-
-pagina = "home"
-if utente["ruolo"] in ["tesoriere", "superadmin"]:
-    if st.sidebar.button("➕ Nuovo movimento"):
-        pagina = "nuovo_movimento"
+    if utente["ruolo"] in ["tesoriere", "superadmin"]:
+        if st.button("➕ Nuovo movimento"):
+            sezione_attiva = "Nuovo Movimento"
 
 # === Connessione ===
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/drive.file",
+]
+creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
+client = gspread.authorize(creds)
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1_Dj2IcT1av_UXamj0sFAuslIQ-NYrRRAyI9A31eXwS4/edit"
+SHEET_NAME = "prima_nota_2024"
 
+def carica_movimenti():
+    df = pd.DataFrame(client.open_by_url(SHEET_URL).worksheet(SHEET_NAME).get_all_records())
+    df.columns = df.columns.str.strip()
+    if "Provincia" not in df.columns:
+        df["Provincia"] = ""
+    df["Importo"] = pd.to_numeric(df["Importo"], errors="coerce").fillna(0)
+    df["data"] = pd.to_datetime(df["data"], errors="coerce")
+    df = df[df["data"].notna()]
+    if utente["ruolo"] == "tesoriere":
+        df = df[df["Provincia"] == utente["provincia"]]
+    return df
+
+# === Le sezioni operative ===
 # === Sezione: Prima Nota ===
 if sezione_attiva == "Prima Nota":
     st.subheader("📁 Prima Nota")
@@ -157,13 +176,12 @@ elif sezione_attiva == "Rendiconto ETS":
         st.markdown("### Sezione B - Uscite")
         st.dataframe(sezione_b)
 
-testo_pdf = "Rendiconto ETS\n\nEntrate:\n"
-for _, row in sezione_a.iterrows():
-    testo_pdf += f"- {row['Causale']}: {format_currency(row['Importo'])}\n"
-testo_pdf += "\nUscite:\n"
-for _, row in sezione_b.iterrows():
-    testo_pdf += f"- {row['Causale']}: {format_currency(row['Importo'])}\n"
-
+        testo_pdf = "Rendiconto ETS\n\nEntrate:\n"
+        for _, row in sezione_a.iterrows():
+            testo_pdf += f"- {row['Causale']}: {format_currency(row['Importo'])}\n"
+        testo_pdf += "\nUscite:\n"
+        for _, row in sezione_b.iterrows():
+            testo_pdf += f"- {row['Causale']}: {format_currency(row['Importo'])}\n"
 
         download_pdf(testo_pdf, "rendiconto_ets.pdf")
     else:
@@ -193,7 +211,7 @@ elif sezione_attiva == "Quote associative":
     st.info("Funzionalità in sviluppo: sarà collegata a Google Sheets o AppSheet.")
 
 # === Sezione: Nuovo Movimento ===
-elif pagina == "nuovo_movimento":
+elif sezione_attiva == "Nuovo Movimento":
     st.subheader("➕ Inserisci nuovo movimento contabile")
     with st.form("nuovo_movimento_form"):
         data_mov = st.date_input("Data", value=date.today())
@@ -223,27 +241,3 @@ elif pagina == "nuovo_movimento":
                 ]
                 ws.append_row(nuova_riga)
                 st.success("✅ Movimento inserito con successo!")
-
-# === Connessione ===
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive",
-    "https://www.googleapis.com/auth/drive.file",
-]
-creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
-client = gspread.authorize(creds)
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1_Dj2IcT1av_UXamj0sFAuslIQ-NYrRRAyI9A31eXwS4/edit"
-SHEET_NAME = "prima_nota_2024"
-
-def carica_movimenti():
-    df = pd.DataFrame(client.open_by_url(SHEET_URL).worksheet(SHEET_NAME).get_all_records())
-    df.columns = df.columns.str.strip()
-    if "Provincia" not in df.columns:
-        df["Provincia"] = ""
-    df["Importo"] = pd.to_numeric(df["Importo"], errors="coerce").fillna(0)
-    df["data"] = pd.to_datetime(df["data"], errors="coerce")
-    df = df[df["data"].notna()]
-    if utente["ruolo"] == "tesoriere":
-        df = df[df["Provincia"] == utente["provincia"]]
-    return df
