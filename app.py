@@ -157,23 +157,13 @@ elif sezione_attiva == "Rendiconto ETS":
         st.markdown("### Sezione B - Uscite")
         st.dataframe(sezione_b)
 
-        testo_pdf = """Rendiconto ETS
+testo_pdf = "Rendiconto ETS\n\nEntrate:\n"
+for _, row in sezione_a.iterrows():
+    testo_pdf += f"- {row['Causale']}: {format_currency(row['Importo'])}\n"
+testo_pdf += "\nUscite:\n"
+for _, row in sezione_b.iterrows():
+    testo_pdf += f"- {row['Causale']}: {format_currency(row['Importo'])}\n"
 
-Entrate:
-"""
-
-
-Entrate:
-"
-        for _, row in sezione_a.iterrows():
-            testo_pdf += f"- {row['Causale']}: {format_currency(row['Importo'])}
-"
-        testo_pdf += "
-Uscite:
-"
-        for _, row in sezione_b.iterrows():
-            testo_pdf += f"- {row['Causale']}: {format_currency(row['Importo'])}
-"
 
         download_pdf(testo_pdf, "rendiconto_ets.pdf")
     else:
