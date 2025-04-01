@@ -5,3 +5,4 @@ plotly
 google-auth
 openpyxl
 fpdf
+streamlit-option-menu
