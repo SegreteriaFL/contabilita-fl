@@ -89,7 +89,7 @@ with st.sidebar:
                 "color": "#FFFFFF",
                 "--hover-color": "#444",
             },
-            "nav-link-selected": {"background-color": "#4CAF50", "color": "white"},
+            "nav-link-selected": {"background-color": "#172D43", "color": "white"},
         }
     )
 
