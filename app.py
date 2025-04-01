@@ -70,21 +70,24 @@ if utente['provincia'] != "Tutte":
 
 from streamlit_option_menu import option_menu
 
+from streamlit_option_menu import option_menu
+
 with st.sidebar:
     sezione_attiva = option_menu(
         menu_title="📂 Sezioni",
         options=["Prima Nota", "Dashboard", "Rendiconto ETS", "Donazioni", "Quote associative"],
         icons=["file-earmark-text", "bar-chart", "clipboard-data", "gift", "people"],
-        menu_icon="cast",
+        menu_icon="folder",
         default_index=0,
         styles={
-            "container": {"padding": "0!important", "background-color": "#f8f9fa"},
-            "icon": {"color": "black", "font-size": "18px"},
+            "container": {"padding": "0!important", "background-color": "#262730"},
+            "icon": {"color": "white", "font-size": "18px"},
             "nav-link": {
                 "font-size": "16px",
                 "text-align": "left",
                 "margin": "0px",
-                "--hover-color": "#eee",
+                "color": "#FFFFFF",
+                "--hover-color": "#444",
             },
             "nav-link-selected": {"background-color": "#4CAF50", "color": "white"},
         }
