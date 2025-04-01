@@ -68,8 +68,28 @@ st.sidebar.markdown(f"**Ruolo:** {utente['ruolo']}")
 if utente['provincia'] != "Tutte":
     st.sidebar.markdown(f"**Provincia:** {utente['provincia']}")
 
-sezioni = ["Prima Nota", "Dashboard", "Rendiconto ETS", "Donazioni", "Quote associative"]
-sezione_attiva = st.sidebar.radio("📂 Sezioni", sezioni)
+from streamlit_option_menu import option_menu
+
+with st.sidebar:
+    sezione_attiva = option_menu(
+        menu_title="📂 Sezioni",
+        options=["Prima Nota", "Dashboard", "Rendiconto ETS", "Donazioni", "Quote associative"],
+        icons=["file-earmark-text", "bar-chart", "clipboard-data", "gift", "people"],
+        menu_icon="cast",
+        default_index=0,
+        styles={
+            "container": {"padding": "0!important", "background-color": "#f8f9fa"},
+            "icon": {"color": "black", "font-size": "18px"},
+            "nav-link": {
+                "font-size": "16px",
+                "text-align": "left",
+                "margin": "0px",
+                "--hover-color": "#eee",
+            },
+            "nav-link-selected": {"background-color": "#4CAF50", "color": "white"},
+        }
+    )
+
 pagina = "home"
 if utente["ruolo"] in ["tesoriere", "superadmin"]:
     if st.sidebar.button("➕ Nuovo movimento"):
