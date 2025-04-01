@@ -157,7 +157,7 @@ elif sezione_attiva == "Rendiconto ETS":
         st.markdown("### Sezione B - Uscite")
         st.dataframe(sezione_b)
 
-        testo_pdf = "Rendiconto ETS
+        testo_pdf = "Rendiconto ETS\n\nEntrate:\n"
 
 Entrate:
 "
