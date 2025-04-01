@@ -1,4 +1,4 @@
-# ✅ Gestionale Contabilità ETS — Versione CHIARA completa e corretta
+# ✅ Gestionale Contabilità ETS — Versione SCURA completa e corretta
 
 import streamlit as st
 import pandas as pd
@@ -16,8 +16,8 @@ st.set_page_config(page_title="Contabilità ETS", layout="wide")
 st.markdown("""
     <style>
         .block-container {
-            background-color: #ffffff;
-            color: #000000;
+            background-color: #1e1e1e;
+            color: #ffffff;
         }
         .stButton > button, .stDownloadButton > button {
             background-color: #4CAF50;
@@ -84,16 +84,16 @@ st.sidebar.markdown(f"**Ruolo:** {utente['ruolo']}")
 if utente['provincia'] != "Tutte":
     st.sidebar.markdown(f"**Provincia:** {utente['provincia']}")
 
-# === Menu moderno (tema CHIARO forzato) ===
+# === Menu moderno (tema SCURO forzato) ===
 menu_style = {
-    "container": {"padding": "0!important", "background-color": "#ffffff"},
-    "icon": {"color": "black", "font-size": "18px"},
+    "container": {"padding": "0!important", "background-color": "#1e1e1e"},
+    "icon": {"color": "white", "font-size": "18px"},
     "nav-link": {
         "font-size": "16px",
         "text-align": "left",
         "margin": "0px",
-        "color": "#000000",
-        "--hover-color": "#e0e0e0",
+        "color": "#FFFFFF",
+        "--hover-color": "#444",
     },
     "nav-link-selected": {"background-color": "#4CAF50", "color": "white", "font-weight": "bold"},
 }
