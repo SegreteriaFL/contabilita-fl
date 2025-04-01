@@ -10,6 +10,8 @@ from io import BytesIO
 from fpdf import FPDF
 from streamlit_option_menu import option_menu
 
+st.set_page_config(page_title="Contabilità ETS", layout="wide")
+
 # === Impostazioni tema dinamico ===
 tema = st.sidebar.radio("🎨 Tema", ["Chiaro", "Scuro"])
 if tema == "Scuro":
@@ -39,7 +41,6 @@ else:
         "nav-link-selected": {"background-color": "#4CAF50", "color": "white", "font-weight": "bold"},
     }
 
-st.set_page_config(page_title="Contabilità ETS", layout="wide")
 st.title("📊 Gestionale Contabilità ETS 2024")
 
 # === Utility ===
