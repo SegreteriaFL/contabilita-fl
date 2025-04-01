@@ -1,4 +1,4 @@
-# ✅ Gestionale Contabilità ETS — Versione SCURA completa e corretta
+# ✅ Gestionale Contabilità ETS — Versione CHIARA completa e corretta
 
 import streamlit as st
 import pandas as pd
@@ -15,8 +15,8 @@ st.set_page_config(page_title="Contabilità ETS", layout="wide")
 st.markdown("""
     <style>
         .block-container {
-            background-color: #1e1e1e;
-            color: #ffffff;
+            background-color: #ffffff;
+            color: #000000;
         }
         .stButton > button, .stDownloadButton > button {
             background-color: #4CAF50;
@@ -47,7 +47,10 @@ def download_pdf(text, nome_file):
     pdf.add_page()
     pdf.set_font("Arial", size=12)
     for line in text.split("\n"):
-        pdf.cell(200, 10, txt=line, ln=True)
+        try:
+            pdf.cell(200, 10, txt=line.encode("latin-1", "replace").decode("latin-1"), ln=True)
+        except:
+            pdf.cell(200, 10, txt="[Errore codifica]", ln=True)
     output = BytesIO()
     pdf.output(output)
     st.download_button("📄 Scarica PDF", data=output.getvalue(), file_name=nome_file, mime="application/pdf")
@@ -79,18 +82,18 @@ st.sidebar.markdown(f"**Ruolo:** {utente['ruolo']}")
 if utente['provincia'] != "Tutte":
     st.sidebar.markdown(f"**Provincia:** {utente['provincia']}")
 
-# === Menu moderno (tema SCURO forzato) ===
+# === Menu moderno (tema CHIARO forzato) ===
 menu_style = {
-    "container": {"padding": "0!important", "background-color": "#1e1e1e"},
-    "icon": {"color": "white", "font-size": "18px"},
+    "container": {"padding": "0!important", "background-color": "#ffffff"},
+    "icon": {"color": "black", "font-size": "18px"},
     "nav-link": {
         "font-size": "16px",
         "text-align": "left",
         "margin": "0px",
-        "color": "#FFFFFF",
-        "--hover-color": "#444",
+        "color": "#000000",
+        "--hover-color": "#e0e0e0",
     },
-    "nav-link-selected": {"background-color": "#4CAF50", "color": "white"},
+    "nav-link-selected": {"background-color": "#4CAF50", "color": "white", "font-weight": "bold"},
 }
 
 with st.sidebar:
@@ -126,7 +129,6 @@ def carica_movimenti():
     if utente["ruolo"] == "tesoriere":
         df = df[df["Provincia"] == utente["provincia"]]
     return df
-
 
 # === Le sezioni operative ===
 # === Sezione: Prima Nota ===
