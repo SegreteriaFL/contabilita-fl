@@ -1,4 +1,4 @@
-# ✅ Gestionale Contabilità ETS — Versione in stile chiaro, semplificata e funzionante
+# ✅ Gestionale Contabilità ETS — Versione SCURA completa e corretta
 
 import streamlit as st
 import pandas as pd
@@ -11,6 +11,19 @@ from fpdf import FPDF
 from streamlit_option_menu import option_menu
 
 st.set_page_config(page_title="Contabilità ETS", layout="wide")
+
+st.markdown("""
+    <style>
+        .block-container {
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+        .stButton > button, .stDownloadButton > button {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 st.title("📊 Gestionale Contabilità ETS 2024")
 
@@ -66,32 +79,29 @@ st.sidebar.markdown(f"**Ruolo:** {utente['ruolo']}")
 if utente['provincia'] != "Tutte":
     st.sidebar.markdown(f"**Provincia:** {utente['provincia']}")
 
-# === Menu moderno (tema chiaro forzato) ===
+# === Menu moderno (tema SCURO forzato) ===
 menu_style = {
-    "container": {"padding": "0!important", "background-color": "#f5f5f5"},
-    "icon": {"color": "#000", "font-size": "18px"},
+    "container": {"padding": "0!important", "background-color": "#1e1e1e"},
+    "icon": {"color": "white", "font-size": "18px"},
     "nav-link": {
         "font-size": "16px",
         "text-align": "left",
         "margin": "0px",
-        "color": "#000000",
-        "--hover-color": "#e0e0e0",
+        "color": "#FFFFFF",
+        "--hover-color": "#444",
     },
-    "nav-link-selected": {"background-color": "#4CAF50", "color": "white", "font-weight": "bold"},
+    "nav-link-selected": {"background-color": "#4CAF50", "color": "white"},
 }
 
 with st.sidebar:
     sezione_attiva = option_menu(
         menu_title="📂 Sezioni",
-        options=["Prima Nota", "Dashboard", "Rendiconto ETS", "Donazioni", "Quote associative"],
-        icons=["file-earmark-text", "bar-chart", "clipboard-data", "gift", "people"],
+        options=["Prima Nota", "Dashboard", "Rendiconto ETS", "Donazioni", "Quote associative", "Nuovo Movimento"],
+        icons=["file-earmark-text", "bar-chart", "clipboard-data", "gift", "people", "plus-circle"],
         menu_icon="folder",
         default_index=0,
         styles=menu_style
     )
-    if utente["ruolo"] in ["tesoriere", "superadmin"]:
-        if st.button("➕ Nuovo movimento"):
-            sezione_attiva = "Nuovo Movimento"
 
 # === Connessione ===
 scope = [
@@ -116,6 +126,7 @@ def carica_movimenti():
     if utente["ruolo"] == "tesoriere":
         df = df[df["Provincia"] == utente["provincia"]]
     return df
+
 
 # === Le sezioni operative ===
 # === Sezione: Prima Nota ===
