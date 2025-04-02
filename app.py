@@ -12,61 +12,59 @@ st.set_page_config(
 # 🌙 Tema scuro coerente
 st.markdown("""
     <style>
-    /* Sfondo generale scuro */
-    body, .main, .block-container {
-        background-color: #0e0e0e;
-        color: #f0f0f0;
+    /* Impostazioni globali scure */
+    .main, .block-container {
+        background-color: #0e0e0e !important;
+        color: #f0f0f0 !important;
     }
 
-    /* Sidebar */
+    /* Sidebar coerente */
     section[data-testid="stSidebar"] {
-        background-color: #111;
+        background-color: #111 !important;
         color: white;
     }
 
-    /* Titoli e testi */
-    h1, h2, h3, h4, h5, h6, p {
-        color: #f0f0f0;
+    /* Titoli */
+    h1, h2, h3, h4, h5, h6, p, label {
+        color: #f0f0f0 !important;
     }
 
-    /* Selectbox, input, date, textarea */
-    .stSelectbox div[data-baseweb], .stTextInput input,
-    .stDateInput input, .stTextArea textarea, .stNumberInput input {
-        background-color: #1e1e1e;
-        color: white;
-        border: 1px solid #444;
-        border-radius: 6px;
+    /* Widget: select, input, date, etc. */
+    div[data-baseweb="select"] > div, input, textarea {
+        background-color: #1e1e1e !important;
+        color: white !important;
+        border: 1px solid #444 !important;
+        border-radius: 6px !important;
     }
 
     /* Pulsanti */
-    button[kind="primary"], .stButton>button {
-        background-color: #444;
-        color: white;
-        border-radius: 6px;
-        border: none;
+    .stButton button {
+        background-color: #444 !important;
+        color: white !important;
+        border-radius: 6px !important;
+        border: none !important;
     }
-    button[kind="primary"]:hover, .stButton>button:hover {
-        background-color: #666;
-        color: white;
+    .stButton button:hover {
+        background-color: #666 !important;
     }
 
     /* Tabelle */
-    .dataframe, .stDataFrame {
-        background-color: #111;
-        color: white;
-        border: 1px solid #333;
+    .stDataFrame, .dataframe {
+        background-color: #111 !important;
+        color: white !important;
     }
-    .stDataFrame table td, .stDataFrame table th {
+    .stDataFrame td, .stDataFrame th {
         background-color: #111 !important;
         color: white !important;
     }
 
-    /* Evidenziazione riga hover (opzionale) */
-    .stDataFrame table tr:hover {
-        background-color: #222 !important;
+    /* Option menu (compatibile con streamlit-option-menu) */
+    .css-1d391kg, .css-1c7y2kd {
+        background-color: #111 !important;
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 
 st.title("📊 Gestionale Contabilità ETS 2024")
