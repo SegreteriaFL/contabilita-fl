@@ -1,24 +1,33 @@
-# ✅ Gestionale Contabilità ETS — Versione STABILE COMPLETA tema scuro moderno
+# ✅ Gestionale Contabilità ETS — Versione STABILE COMPLETA
 
 import streamlit as st
-from streamlit_option_menu import option_menu
 import pandas as pd
 import gspread
+import plotly.express as px
 from google.oauth2.service_account import Credentials
+from datetime import date
 from io import BytesIO
 from fpdf import FPDF
+from streamlit_option_menu import option_menu
 import tempfile
 
-st.set_page_config(
-    page_title="Gestionale Contabilità ETS",
-    page_icon="📒",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title="Contabilità ETS", layout="wide")
 
-# ✅ Caricamento CSS moderno da file
-with open("theme.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+st.markdown("""
+    <style>
+        html, body, .main, .block-container {
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+        .stButton > button, .stDownloadButton > button {
+            background-color: #4CAF50;
+            color: white;
+            width: 100%;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("📊 Gestionale Contabilità ETS 2024")
 
 # === Utility ===
 def format_currency(val):
@@ -77,10 +86,16 @@ if utente['provincia'] != "Tutte":
     st.sidebar.markdown(f"**Provincia:** {utente['provincia']}")
 
 menu_style = {
-    "container": {"padding": "0!important", "background-color": "#111"},
+    "container": {"padding": "0!important", "background-color": "#1e1e1e"},
     "icon": {"color": "white", "font-size": "18px"},
-    "nav-link": {"font-size": "16px", "color": "#EEE", "margin":"4px", "--hover-color": "#333"},
-    "nav-link-selected": {"background-color": "#4CAF50", "font-weight": "bold", "color": "white"},
+    "nav-link": {
+        "font-size": "16px",
+        "text-align": "left",
+        "margin": "0px",
+        "color": "#FFFFFF",
+        "--hover-color": "#444",
+    },
+    "nav-link-selected": {"background-color": "#4CAF50", "color": "white", "font-weight": "bold"},
 }
 
 with st.sidebar:
@@ -117,7 +132,8 @@ def carica_movimenti():
         df = df[df["Provincia"] == utente["provincia"]]
     return df
 
-# === Sezioni modulate ===
+# === Le SEZIONI sono ora modulari e senza errori ===
+
 from sezioni import (
     mostra_prima_nota,
     mostra_dashboard,
