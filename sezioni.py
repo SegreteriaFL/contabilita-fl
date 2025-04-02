@@ -3,15 +3,13 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 from datetime import date
-from st_antd_components import Select
 
 def mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, download_excel):
     df = carica_movimenti()
     st.subheader("📁 Prima Nota")
     if not df.empty:
         mesi = sorted(df['data'].dt.strftime("%Y-%m").unique())
-        mese = Select(label="📅 Mese", options=mesi, index=0, searchable=True)
-
+        mese = st.selectbox("📅 Mese:", mesi)
         centro_sel = st.selectbox("🏷️ Centro di costo:", ["Tutti"] + sorted(df['Centro di Costo'].dropna().unique()))
         df_mese = df[df['data'].dt.strftime("%Y-%m") == mese]
         if centro_sel != "Tutti":
@@ -32,6 +30,9 @@ def mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, do
         download_excel(df_mese.drop(columns=["Importo", "data"]), "prima_nota")
     else:
         st.info("Nessun movimento disponibile.")
+
+# Le altre funzioni non modificate restano invariate
+
 
 def mostra_dashboard(carica_movimenti):
     df = carica_movimenti()
