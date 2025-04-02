@@ -1,26 +1,31 @@
 
-/* 🌙 Tema Scuro Coerente - Streamlit + Option Menu */
+/* 🌙 Tema Scuro Streamlit - CSS compatibile e robusto */
 
-/* Corpo pagina */
+/* Corpo e contenitore principale */
 html, body, .main, .block-container {
     background-color: #0e0e0e !important;
     color: #f0f0f0 !important;
 }
 
+/* Area in alto sopra la pagina (evita barra bianca) */
+header, [data-testid="stHeader"] {
+    background-color: #0e0e0e !important;
+}
+
 /* Sidebar */
 section[data-testid="stSidebar"] {
     background-color: #111 !important;
-    color: white;
+    color: white !important;
     padding-top: 1rem !important;
 }
 
-/* Titoli, paragrafi, etichette */
-h1, h2, h3, h4, h5, h6, p, label, span, div {
+/* Titoli e testi */
+h1, h2, h3, h4, h5, h6, p, label, span, div, .css-10trblm {
     color: #f0f0f0 !important;
 }
 
-/* Widget input */
-input, textarea, .stTextInput input, .stSelectbox div, .stNumberInput input {
+/* Input generici */
+input, textarea, select, .stTextInput input, .stSelectbox div, .stDateInput input {
     background-color: #1e1e1e !important;
     color: white !important;
     border: 1px solid #444 !important;
@@ -48,25 +53,17 @@ input, textarea, .stTextInput input, .stSelectbox div, .stNumberInput input {
     color: white !important;
 }
 
-/* Option Menu (streamlit-option-menu) */
+/* Option Menu - sfondo e hover */
 .css-1c7y2kd, .css-1d391kg, .css-16idsys {
     background-color: #111 !important;
     color: white !important;
     border-radius: 0 !important;
 }
-.css-1c7y2kd:hover {
-    background-color: #333 !important;
+.css-1c7y2kd:hover, .css-1d391kg:hover {
+    background-color: #222 !important;
 }
 
-/* Titolo menu */
-.st-emotion-cache-16txtl3 {
-    padding: 0.5rem 1rem !important;
-    font-weight: bold;
-    color: white !important;
-    font-size: 18px;
-}
-
-/* Icone nel menu */
-.css-1x8cf1d {
+/* Titolo sezione menu */
+[data-testid="stSidebar"] h1, h2, h3 {
     color: white !important;
 }
