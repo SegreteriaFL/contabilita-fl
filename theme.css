@@ -118,3 +118,6 @@ section[data-testid="stSidebar"] {
   background: rgba(100,100,100,.1) !important;
   border-radius: 5px;
 }
+.menu {
+  background: rgb(17, 17, 17) !important;
+}
