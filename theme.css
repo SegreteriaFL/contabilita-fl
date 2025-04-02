@@ -94,3 +94,14 @@ section[data-testid="stSidebar"] {
     border-top-left-radius: 0 !important;
     overflow-x: hidden;
 }
+
+/* Fix specifici per elementi residuali in tema chiaro */
+.st-emotion-cache-qiev7j {
+    color: black !important;
+}
+.st-emotion-cache-10c9vv9 p {
+    color: black !important;
+}
+.stMain {
+    background: #0e0e0e !important;
+}
