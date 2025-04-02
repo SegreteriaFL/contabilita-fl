@@ -123,3 +123,11 @@ section[data-testid="stSidebar"] {
 .menu {
   background: rgb(17, 17, 17) !important;
 }
+
+.menu-title .icon[data-v-5af006b8] {
+  display: none;
+}
+
+.menu-title.align-items-center.mb-md-0.me-md-auto.text-decoration-none {
+  color: white;
+}
