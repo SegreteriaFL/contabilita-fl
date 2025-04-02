@@ -109,3 +109,6 @@ section[data-testid="stSidebar"] {
 .st-cq {
   border: solid 1px #1e1e1e !important;
 }
+
+#app {
+  background: #000;}
