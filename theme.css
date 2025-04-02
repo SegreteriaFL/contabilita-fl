@@ -8,6 +8,8 @@ html, body, .main, .block-container {
     font-family: 'Segoe UI', sans-serif;
 }
 
+body{background:rgb(17, 17, 17) !important;}
+
 /* Header */
 [data-testid="stHeader"] {
     background-color: #0e0e0e !important;
