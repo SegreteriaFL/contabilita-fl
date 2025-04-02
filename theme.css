@@ -1,16 +1,16 @@
 
-/* 🌙 Tema Scuro Moderno Streamlit */
+/* 🌙 Tema Scuro Hardcore Fix - Streamlit */
 
-/* Struttura generale */
+/* Background e testo principali */
 html, body, .main, .block-container {
-    background-color: #0f0f0f !important;
+    background-color: #0e0e0e !important;
     color: #f0f0f0 !important;
     font-family: 'Segoe UI', sans-serif;
 }
 
 /* Header */
 [data-testid="stHeader"] {
-    background-color: #0f0f0f !important;
+    background-color: #0e0e0e !important;
 }
 
 /* Sidebar */
@@ -25,7 +25,7 @@ h1, h2, h3, h4, h5, h6, p, label, span, div {
     color: #f0f0f0 !important;
 }
 
-/* Widget */
+/* Input, textarea */
 input, textarea, select, .stTextInput input, .stDateInput input {
     background-color: #1e1e1e !important;
     color: white !important;
@@ -55,7 +55,7 @@ input, textarea, select, .stTextInput input, .stDateInput input {
     color: white !important;
 }
 
-/* Option menu */
+/* Option Menu fix */
 .css-1c7y2kd, .css-1d391kg, .css-16idsys {
     background-color: #111 !important;
     color: white !important;
@@ -64,16 +64,33 @@ input, textarea, select, .stTextInput input, .stDateInput input {
     background-color: #222 !important;
 }
 
-/* Dropdown Selectbox */
+/* Titolo sidebar */
+[data-testid="stSidebar"] h1, h2, h3 {
+    color: white !important;
+}
+
+/* === FIX dropdown (baseweb select) === */
 div[data-baseweb="select"] {
     background-color: #1e1e1e !important;
     color: white !important;
     border: 1px solid #444 !important;
+    border-radius: 6px !important;
 }
-div[data-baseweb="select"] div[role="option"] {
-    background-color: #1e1e1e !important;
+div[data-baseweb="select"] * {
     color: white !important;
+    background-color: #1e1e1e !important;
 }
 div[data-baseweb="select"] div[role="option"]:hover {
     background-color: #333 !important;
+}
+
+/* Fix bordi curvi sidebar e rimuovi scrollbar resize */
+section[data-testid="stSidebar"]::-webkit-resizer,
+section[data-testid="stSidebar"]::-webkit-scrollbar-corner {
+    background: #111 !important;
+}
+section[data-testid="stSidebar"] {
+    border-bottom-left-radius: 0 !important;
+    border-top-left-radius: 0 !important;
+    overflow-x: hidden;
 }
