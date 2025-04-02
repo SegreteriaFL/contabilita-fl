@@ -6,3 +6,4 @@ google-auth
 openpyxl
 fpdf>=1.7.2
 streamlit-option-menu
+streamlit-antd-components
