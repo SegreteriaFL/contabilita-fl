@@ -110,6 +110,6 @@ section[data-testid="stSidebar"] {
   border: solid 1px #1e1e1e !important;
 }
 
-#app {
+#app,.menu {
   background:rgb(17, 17, 17)!important;
 }
