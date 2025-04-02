@@ -129,5 +129,5 @@ section[data-testid="stSidebar"] {
 }
 
 .menu-title.align-items-center.mb-md-0.me-md-auto.text-decoration-none {
-  color: white;
+  color: white!important;
 }
