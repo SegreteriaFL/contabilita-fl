@@ -1,31 +1,73 @@
-# ✅ Gestionale Contabilità ETS — Versione STABILE COMPLETA
+# ✅ Gestionale Contabilità ETS — Versione STABILE COMPLETA tema scuro
 
 import streamlit as st
-import pandas as pd
-import gspread
-import plotly.express as px
-from google.oauth2.service_account import Credentials
-from datetime import date
-from io import BytesIO
-from fpdf import FPDF
-from streamlit_option_menu import option_menu
-import tempfile
 
-st.set_page_config(page_title="Contabilità ETS", layout="wide")
+st.set_page_config(
+    page_title="Gestionale Contabilità ETS",
+    page_icon="📒",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
+# 🌙 Tema scuro coerente
 st.markdown("""
     <style>
-        html, body, .main, .block-container {
-            background-color: #1e1e1e;
-            color: #ffffff;
-        }
-        .stButton > button, .stDownloadButton > button {
-            background-color: #4CAF50;
-            color: white;
-            width: 100%;
-        }
+    /* Sfondo generale scuro */
+    body, .main, .block-container {
+        background-color: #0e0e0e;
+        color: #f0f0f0;
+    }
+
+    /* Sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #111;
+        color: white;
+    }
+
+    /* Titoli e testi */
+    h1, h2, h3, h4, h5, h6, p {
+        color: #f0f0f0;
+    }
+
+    /* Selectbox, input, date, textarea */
+    .stSelectbox div[data-baseweb], .stTextInput input,
+    .stDateInput input, .stTextArea textarea, .stNumberInput input {
+        background-color: #1e1e1e;
+        color: white;
+        border: 1px solid #444;
+        border-radius: 6px;
+    }
+
+    /* Pulsanti */
+    button[kind="primary"], .stButton>button {
+        background-color: #444;
+        color: white;
+        border-radius: 6px;
+        border: none;
+    }
+    button[kind="primary"]:hover, .stButton>button:hover {
+        background-color: #666;
+        color: white;
+    }
+
+    /* Tabelle */
+    .dataframe, .stDataFrame {
+        background-color: #111;
+        color: white;
+        border: 1px solid #333;
+    }
+    .stDataFrame table td, .stDataFrame table th {
+        background-color: #111 !important;
+        color: white !important;
+    }
+
+    /* Evidenziazione riga hover (opzionale) */
+    .stDataFrame table tr:hover {
+        background-color: #222 !important;
+    }
     </style>
 """, unsafe_allow_html=True)
+
 
 st.title("📊 Gestionale Contabilità ETS 2024")
 
