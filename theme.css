@@ -1,0 +1,72 @@
+
+/* 🌙 Tema Scuro Coerente - Streamlit + Option Menu */
+
+/* Corpo pagina */
+html, body, .main, .block-container {
+    background-color: #0e0e0e !important;
+    color: #f0f0f0 !important;
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background-color: #111 !important;
+    color: white;
+    padding-top: 1rem !important;
+}
+
+/* Titoli, paragrafi, etichette */
+h1, h2, h3, h4, h5, h6, p, label, span, div {
+    color: #f0f0f0 !important;
+}
+
+/* Widget input */
+input, textarea, .stTextInput input, .stSelectbox div, .stNumberInput input {
+    background-color: #1e1e1e !important;
+    color: white !important;
+    border: 1px solid #444 !important;
+    border-radius: 6px !important;
+}
+
+/* Pulsanti */
+.stButton button {
+    background-color: #444 !important;
+    color: white !important;
+    border-radius: 6px !important;
+    border: none !important;
+}
+.stButton button:hover {
+    background-color: #666 !important;
+}
+
+/* Tabelle */
+.stDataFrame, .dataframe {
+    background-color: #111 !important;
+    color: white !important;
+}
+.stDataFrame td, .stDataFrame th {
+    background-color: #111 !important;
+    color: white !important;
+}
+
+/* Option Menu (streamlit-option-menu) */
+.css-1c7y2kd, .css-1d391kg, .css-16idsys {
+    background-color: #111 !important;
+    color: white !important;
+    border-radius: 0 !important;
+}
+.css-1c7y2kd:hover {
+    background-color: #333 !important;
+}
+
+/* Titolo menu */
+.st-emotion-cache-16txtl3 {
+    padding: 0.5rem 1rem !important;
+    font-weight: bold;
+    color: white !important;
+    font-size: 18px;
+}
+
+/* Icone nel menu */
+.css-1x8cf1d {
+    color: white !important;
+}
