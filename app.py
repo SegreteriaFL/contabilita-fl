@@ -1,8 +1,7 @@
-# ✅ Gestionale Contabilità ETS — Tema coerente + stile moderno (Ant Design)
+# ✅ Gestionale Contabilità ETS — Tema coerente, stabile, compatibile Streamlit Cloud
 
 import streamlit as st
 from streamlit_option_menu import option_menu
-from st_antd_components import Select
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
@@ -17,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ✅ Caricamento tema coerente
+# ✅ Caricamento tema scuro/chiaro coerente
 with open("theme.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
@@ -77,10 +76,11 @@ st.sidebar.markdown(f"**Ruolo:** {utente['ruolo']}")
 if utente['provincia'] != "Tutte":
     st.sidebar.markdown(f"**Provincia:** {utente['provincia']}")
 
+# === Menu laterale ===
 menu_style = {
     "container": {"padding": "0!important", "background-color": "#111"},
     "icon": {"color": "white", "font-size": "18px"},
-    "nav-link": {"font-size": "16px", "color": "#EEE", "margin":"4px", "--hover-color": "#333"},
+    "nav-link": {"font-size": "16px", "color": "#EEE", "margin": "4px", "--hover-color": "#333"},
     "nav-link-selected": {"background-color": "#4CAF50", "font-weight": "bold", "color": "white"},
 }
 
@@ -94,7 +94,7 @@ with st.sidebar:
         styles=menu_style
     )
 
-# === Connessione ===
+# === Connessione a Google Sheets ===
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -118,7 +118,7 @@ def carica_movimenti():
         df = df[df["Provincia"] == utente["provincia"]]
     return df
 
-# === Sezioni ===
+# === Import delle sezioni modulari ===
 from sezioni import (
     mostra_prima_nota,
     mostra_dashboard,
@@ -128,6 +128,7 @@ from sezioni import (
     mostra_nuovo_movimento,
 )
 
+# === Routing ===
 if sezione_attiva == "Prima Nota":
     mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, download_excel)
 elif sezione_attiva == "Dashboard":
