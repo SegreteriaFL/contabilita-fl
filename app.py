@@ -9,17 +9,17 @@ from io import BytesIO
 from fpdf import FPDF
 import tempfile
 
+# Config pagina
 st.set_page_config(
-    with open("theme.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     page_title="Gestionale Contabilità ETS",
     page_icon="📒",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 🌙 Tema scuro coerente
-st.markdown("""
+# ✅ Caricamento CSS scuro da file
+with open("theme.css") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     <style>
     /* Impostazioni globali scure */
     .main, .block-container {
