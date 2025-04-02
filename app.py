@@ -1,6 +1,13 @@
 # ✅ Gestionale Contabilità ETS — Versione STABILE COMPLETA tema scuro
 
 import streamlit as st
+from streamlit_option_menu import option_menu
+import pandas as pd
+import gspread
+from google.oauth2.service_account import Credentials
+from io import BytesIO
+from fpdf import FPDF
+import tempfile
 
 st.set_page_config(
     page_title="Gestionale Contabilità ETS",
