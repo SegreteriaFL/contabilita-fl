@@ -9,7 +9,6 @@ from io import BytesIO
 from fpdf import FPDF
 import tempfile
 
-# Config pagina
 st.set_page_config(
     page_title="Gestionale Contabilità ETS",
     page_icon="📒",
@@ -17,64 +16,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ✅ Caricamento CSS scuro da file
+# ✅ Caricamento CSS scuro da file esterno
 with open("theme.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    <style>
-    /* Impostazioni globali scure */
-    .main, .block-container {
-        background-color: #0e0e0e !important;
-        color: #f0f0f0 !important;
-    }
-
-    /* Sidebar coerente */
-    section[data-testid="stSidebar"] {
-        background-color: #111 !important;
-        color: white;
-    }
-
-    /* Titoli */
-    h1, h2, h3, h4, h5, h6, p, label {
-        color: #f0f0f0 !important;
-    }
-
-    /* Widget: select, input, date, etc. */
-    div[data-baseweb="select"] > div, input, textarea {
-        background-color: #1e1e1e !important;
-        color: white !important;
-        border: 1px solid #444 !important;
-        border-radius: 6px !important;
-    }
-
-    /* Pulsanti */
-    .stButton button {
-        background-color: #444 !important;
-        color: white !important;
-        border-radius: 6px !important;
-        border: none !important;
-    }
-    .stButton button:hover {
-        background-color: #666 !important;
-    }
-
-    /* Tabelle */
-    .stDataFrame, .dataframe {
-        background-color: #111 !important;
-        color: white !important;
-    }
-    .stDataFrame td, .stDataFrame th {
-        background-color: #111 !important;
-        color: white !important;
-    }
-
-    /* Option menu (compatibile con streamlit-option-menu) */
-    .css-1d391kg, .css-1c7y2kd {
-        background-color: #111 !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-
 
 st.title("📊 Gestionale Contabilità ETS 2024")
 
