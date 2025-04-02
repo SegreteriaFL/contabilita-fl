@@ -1,7 +1,8 @@
-# ✅ Gestionale Contabilità ETS — Versione STABILE COMPLETA tema scuro moderno
+# ✅ Gestionale Contabilità ETS — Tema coerente + stile moderno (Ant Design)
 
 import streamlit as st
 from streamlit_option_menu import option_menu
+from st_antd_components import Select
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
@@ -16,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ✅ Caricamento CSS moderno da file
+# ✅ Caricamento tema coerente
 with open("theme.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
@@ -117,7 +118,7 @@ def carica_movimenti():
         df = df[df["Provincia"] == utente["provincia"]]
     return df
 
-# === Sezioni modulate ===
+# === Sezioni ===
 from sezioni import (
     mostra_prima_nota,
     mostra_dashboard,
