@@ -1,4 +1,4 @@
-# ✅ Gestionale Contabilità ETS — Versione STABILE COMPLETA tema scuro
+# ✅ Gestionale Contabilità ETS — Versione STABILE COMPLETA tema scuro moderno
 
 import streamlit as st
 from streamlit_option_menu import option_menu
@@ -16,11 +16,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ✅ Caricamento CSS scuro da file esterno
+# ✅ Caricamento CSS moderno da file
 with open("theme.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-st.title("📊 Gestionale Contabilità ETS 2024")
 
 # === Utility ===
 def format_currency(val):
@@ -79,16 +77,10 @@ if utente['provincia'] != "Tutte":
     st.sidebar.markdown(f"**Provincia:** {utente['provincia']}")
 
 menu_style = {
-    "container": {"padding": "0!important", "background-color": "#1e1e1e"},
+    "container": {"padding": "0!important", "background-color": "#111"},
     "icon": {"color": "white", "font-size": "18px"},
-    "nav-link": {
-        "font-size": "16px",
-        "text-align": "left",
-        "margin": "0px",
-        "color": "#FFFFFF",
-        "--hover-color": "#444",
-    },
-    "nav-link-selected": {"background-color": "#4CAF50", "color": "white", "font-weight": "bold"},
+    "nav-link": {"font-size": "16px", "color": "#EEE", "margin":"4px", "--hover-color": "#333"},
+    "nav-link-selected": {"background-color": "#4CAF50", "font-weight": "bold", "color": "white"},
 }
 
 with st.sidebar:
@@ -125,8 +117,7 @@ def carica_movimenti():
         df = df[df["Provincia"] == utente["provincia"]]
     return df
 
-# === Le SEZIONI sono ora modulari e senza errori ===
-
+# === Sezioni modulate ===
 from sezioni import (
     mostra_prima_nota,
     mostra_dashboard,
