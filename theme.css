@@ -125,7 +125,7 @@ section[data-testid="stSidebar"] {
 }
 
 .menu-title .icon[data-v-5af006b8] {
-  display: none;
+  display: none!important;
 }
 
 .menu-title.align-items-center.mb-md-0.me-md-auto.text-decoration-none {
