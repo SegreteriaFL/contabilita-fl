@@ -24,7 +24,7 @@ def mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, do
         st.dataframe(df_mese.drop(columns=["Importo", "data"]))
 
         entrate = df_mese[df_mese["Importo"] > 0]["Importo"].sum()
-        uscite = df_mese[df_mese["Importo"] < 0]["Importo"].sum()
+        uscite = abs(df[df["Importo"] < 0]["Importo"].sum())
         st.markdown(f"**Totale entrate:** {format_currency(entrate)}")
         st.markdown(f"**Totale uscite:** {format_currency(abs(uscite))}")
         st.markdown(f"**Saldo:** {format_currency(entrate + uscite)}")
