@@ -30,3 +30,4 @@ def mostra_nuovo_movimento(client, ruolo, riferimenti):
 def mostra_saldo(client):
     st.subheader("💳 Saldo da Estratto Conto")
     st.info("Sezione in sviluppo.")
+    
