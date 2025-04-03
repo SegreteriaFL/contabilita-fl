@@ -47,7 +47,7 @@ def download_pdf(testo, filename):
 def genera_ricevuta_pdf(row):
     return f"Ricevuta per donazione di {format_currency(row['Importo'])} in data {format_date(row['data'])}. Grazie!"
 
-def mostra_prima_nota(utente):
+def mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, download_excel):
     df = carica_movimenti()
     st.subheader("📁 Prima Nota")
     if not df.empty:
