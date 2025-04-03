@@ -2,6 +2,34 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 
+# Funzione per "Prima Nota"
+def mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, download_excel):
+    df = carica_movimenti()
+    st.subheader("📁 Prima Nota")
+    if not df.empty:
+        mesi = sorted(df['data'].dt.strftime("%Y-%m").unique())
+        mese = st.selectbox("📅 Mese:", mesi)
+        centro_sel = st.selectbox("🏷️ Centro di costo:", ["Tutti"] + sorted(df['Centro di Costo'].dropna().unique()))
+        df_mese = df[df['data'].dt.strftime("%Y-%m") == mese]
+        if centro_sel != "Tutti":
+            df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
+
+        df_mese = df_mese.copy()
+        df_mese["Data"] = df_mese["data"].apply(format_date)
+        df_mese["Importo (€)"] = df_mese["Importo"].apply(format_currency)
+
+        st.dataframe(df_mese.drop(columns=["Importo", "data"]))
+
+        entrate = df_mese[df_mese["Importo"] > 0]["Importo"].sum()
+        uscite = df_mese[df_mese["Importo"] < 0]["Importo"].sum()
+        st.markdown(f"**Totale entrate:** {format_currency(entrate)}")
+        st.markdown(f"**Totale uscite:** {format_currency(abs(uscite))}")
+        st.markdown(f"**Saldo:** {format_currency(entrate + uscite)}")
+
+        download_excel(df_mese.drop(columns=["Importo", "data"]), "prima_nota")
+    else:
+        st.info("Nessun movimento disponibile.")
+
 # Funzione per "Saldo da Estratto Conto"
 def mostra_situazione_conti(client, SHEET_URL, SHEET_NAME):
     st.subheader("📊 Saldo da Estratto Conto")
@@ -38,7 +66,6 @@ def mostra_situazione_conti(client, SHEET_URL, SHEET_NAME):
         except Exception as e:
             st.error("❌ Errore durante il salvataggio dei saldi.")
             st.exception(e)
-
 
 # Funzione per il "Rendiconto ETS"
 def mostra_rendiconto(carica_movimenti, format_currency, download_pdf):
