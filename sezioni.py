@@ -1,4 +1,4 @@
-# ✅ sezioni.py — versione finale compatibile con app.py, con mostra_dashboard inclusa
+# ✅ sezioni.py — versione finale funzionante
 import streamlit as st
 import plotly.express as px
 import pandas as pd
@@ -24,7 +24,7 @@ def mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, do
         st.dataframe(df_mese.drop(columns=["Importo", "data"]))
 
         entrate = df_mese[df_mese["Importo"] > 0]["Importo"].sum()
-        uscite = abs(df[df["Importo"] < 0]["Importo"].sum())
+        uscite = df_mese[df_mese["Importo"] < 0]["Importo"].sum()
         st.markdown(f"**Totale entrate:** {format_currency(entrate)}")
         st.markdown(f"**Totale uscite:** {format_currency(abs(uscite))}")
         st.markdown(f"**Saldo:** {format_currency(entrate + uscite)}")
@@ -64,7 +64,7 @@ def mostra_rendiconto(carica_movimenti, format_currency, download_pdf):
     st.subheader("📄 Rendiconto ETS")
     if not df.empty:
         entrate = df[df["Importo"] > 0]["Importo"].sum()
-        uscite = df[df["Importo"] < 0]["Importo"].sum().abs()
+        uscite = abs(df[df["Importo"] < 0]["Importo"].sum())
         saldo = entrate - uscite
 
         st.metric("Sezione A - Entrate", format_currency(entrate))
