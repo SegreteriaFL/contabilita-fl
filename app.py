@@ -92,8 +92,13 @@ def mostra_dashboard():
     
     if not df.empty:
         df["mese"] = df["data"].dt.to_period("M").astype(str)
+        
         entrate = df[df["Importo"] > 0].groupby("mese")["Importo"].sum().reset_index()
         uscite = df[df["Importo"] < 0].groupby("mese")["Importo"].sum().abs().reset_index()
+
+        # Aggiungiamo il debug qui per stampare i dati di entrate e uscite
+        st.write("Entrate per mese:", entrate)
+        st.write("Uscite per mese:", uscite)
 
         col1, col2 = st.columns(2)
         with col1:
