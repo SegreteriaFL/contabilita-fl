@@ -5,22 +5,26 @@ from google.oauth2.service_account import Credentials
 from io import BytesIO
 import plotly.express as px
 import tempfile
+from fpdf import FPDF
 
-# ✅ Funzioni utili
+# ✅ Funzione per formattare la valuta
 def format_currency(val):
     try:
         return f"{float(val):,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
     except:
         return val
 
+# ✅ Funzione per formattare le date in formato gg/mm/aaaa
 def format_date(dt):
     return dt.strftime("%d/%m/%Y") if not pd.isna(dt) else ""
 
+# ✅ Funzione per scaricare il file Excel
 def download_excel(df, nome_file):
     output = BytesIO()
     df.to_excel(output, index=False)
     st.download_button("📥 Scarica Excel", data=output.getvalue(), file_name=f"{nome_file}.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
+# ✅ Funzione per generare un PDF (ad esempio per le ricevute)
 def download_pdf(text, nome_file):
     pdf = FPDF()
     pdf.add_page()
@@ -36,7 +40,8 @@ def download_pdf(text, nome_file):
         st.download_button("📄 Scarica PDF", data=tmp.read(), file_name=nome_file, mime="application/pdf")
 
 
-# === Connessione Google Sheets ===
+# === Connessione a Google Sheets ===
+# Configurazione della connessione a Google Sheets
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -51,21 +56,31 @@ SHEET_NAME = "prima_nota_2024"
 
 # === Carica i dati da Google Sheets ===
 def carica_movimenti():
+    # Carica i dati dal foglio di calcolo Google Sheets
     df = pd.DataFrame(client.open_by_url(SHEET_URL).worksheet(SHEET_NAME).get_all_records())
-    df.columns = df.columns.str.strip()
-    df["Importo"] = pd.to_numeric(df["Importo"], errors="coerce").fillna(0)
+    df.columns = df.columns.str.strip()  # Rimuove spazi indesiderati dalle colonne
+    df["Importo"] = pd.to_numeric(df["Importo"], errors="coerce").fillna(0)  # Converte 'Importo' in numerico
+    df["data"] = pd.to_datetime(df["data"], errors="coerce")  # Converte la colonna 'data' in formato datetime
     return df
 
 
-# === Sezioni dell'App ===
+# === Sezione "Prima Nota" ===
 def mostra_prima_nota():
     df = carica_movimenti()
     st.subheader("📁 Prima Nota")
+    
     if not df.empty:
+        # Convertiamo la colonna 'data' in datetime se non è già
+        df['data'] = pd.to_datetime(df['data'], errors='coerce')
+
+        # Creiamo una lista di mesi per il filtro
         mesi = sorted(df['data'].dt.strftime("%Y-%m").unique())
         mese = st.selectbox("📅 Mese:", mesi)
+
+        # Selezione del centro di costo
         centro_sel = st.selectbox("🏷️ Centro di costo:", ["Tutti"] + sorted(df['Centro di Costo'].dropna().unique()))
         df_mese = df[df['data'].dt.strftime("%Y-%m") == mese]
+        
         if centro_sel != "Tutti":
             df_mese = df_mese[df_mese['Centro di Costo'] == centro_sel]
 
@@ -75,30 +90,28 @@ def mostra_prima_nota():
 
         st.dataframe(df_mese.drop(columns=["Importo", "data"]))
 
+        # Calcoli per entrate e uscite
         entrate = df_mese[df_mese["Importo"] > 0]["Importo"].sum()
         uscite = df_mese[df_mese["Importo"] < 0]["Importo"].sum()
         st.markdown(f"**Totale entrate:** {format_currency(entrate)}")
         st.markdown(f"**Totale uscite:** {format_currency(abs(uscite))}")
         st.markdown(f"**Saldo:** {format_currency(entrate + uscite)}")
 
+        # Download del file Excel
         download_excel(df_mese.drop(columns=["Importo", "data"]), "prima_nota")
     else:
         st.info("Nessun movimento disponibile.")
 
 
+# === Sezione "Dashboard" ===
 def mostra_dashboard():
     df = carica_movimenti()
     st.subheader("📊 Dashboard")
     
     if not df.empty:
-        df["mese"] = df["data"].dt.to_period("M").astype(str)
-        
+        df["mese"] = df["data"].dt.to_period("M").astype(str)  # Assicuriamoci che i mesi siano in formato stringa
         entrate = df[df["Importo"] > 0].groupby("mese")["Importo"].sum().reset_index()
         uscite = df[df["Importo"] < 0].groupby("mese")["Importo"].sum().abs().reset_index()
-
-        # Aggiungiamo il debug qui per stampare i dati di entrate e uscite
-        st.write("Entrate per mese:", entrate)
-        st.write("Uscite per mese:", uscite)
 
         col1, col2 = st.columns(2)
         with col1:
