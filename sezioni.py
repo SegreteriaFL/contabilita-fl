@@ -1,4 +1,4 @@
-# ✅ sezioni.py — versione compatibile con app.py originale
+# ✅ sezioni.py — versione finale compatibile con app.py, con mostra_dashboard inclusa
 import streamlit as st
 import plotly.express as px
 import pandas as pd
@@ -32,6 +32,32 @@ def mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, do
         download_excel(df_mese.drop(columns=["Importo", "data"]), "prima_nota")
     else:
         st.info("Nessun movimento disponibile.")
+
+def mostra_dashboard(carica_movimenti):
+    df = carica_movimenti()
+    st.subheader("📊 Dashboard")
+    if not df.empty:
+        df["mese"] = df["data"].dt.to_period("M").astype(str)
+        entrate = df[df["Importo"] > 0].groupby("mese")["Importo"].sum().reset_index()
+        uscite = df[df["Importo"] < 0].groupby("mese")["Importo"].sum().abs().reset_index()
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.plotly_chart(px.bar(entrate, x="mese", y="Importo", title="Entrate per mese"), use_container_width=True)
+        with col2:
+            st.plotly_chart(px.bar(uscite, x="mese", y="Importo", title="Uscite per mese"), use_container_width=True)
+
+        st.plotly_chart(
+            px.bar(
+                df.groupby("Centro di Costo")["Importo"].sum().reset_index(),
+                x="Centro di Costo",
+                y="Importo",
+                title="Totale per centro di costo"
+            ),
+            use_container_width=True
+        )
+    else:
+        st.info("Nessun dato disponibile.")
 
 def mostra_rendiconto(carica_movimenti, format_currency, download_pdf):
     df = carica_movimenti()
