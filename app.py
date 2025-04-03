@@ -140,4 +140,4 @@ elif sezione_attiva == "Donazioni":
 elif sezione_attiva == "Quote associative":
     mostra_quote()
 elif sezione_attiva == "Nuovo Movimento":
-    mostra_nuovo_movimento(utente, client, SHEET_URL, SHEET_NAME)
+    mostra_nuovo_movimento(utente)
