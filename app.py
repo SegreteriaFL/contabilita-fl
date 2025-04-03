@@ -113,4 +113,16 @@ from sezioni import (
 
 # === Routing ===
 if sezione_attiva == "Prima Nota":
-    mostra_prima
+    mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, download_excel)
+elif sezione_attiva == "Dashboard":
+    mostra_dashboard(carica_movimenti)
+elif sezione_attiva == "Rendiconto ETS":
+    mostra_rendiconto(carica_movimenti, format_currency, download_pdf)
+elif sezione_attiva == "Donazioni":
+    mostra_donazioni(carica_movimenti, format_currency, format_date, genera_ricevuta_pdf, download_pdf)
+elif sezione_attiva == "Quote associative":
+    mostra_quote()
+elif sezione_attiva == "Nuovo Movimento":
+    mostra_nuovo_movimento(utente, client, SHEET_URL, SHEET_NAME)
+elif sezione_attiva == "Saldo da Estratto Conto":  # Aggiungi questa sezione
+    mostra_situazione_conti(client, SHEET_URL, SHEET_NAME)
