@@ -137,11 +137,6 @@ def mostra_nuovo_movimento(utente, client, SHEET_URL, SHEET_NAME):
         expected = ["Causale", "Centro di costo", "Cassa"]
         riferimenti_raw = worksheet.get_all_records(expected_headers=expected)
         riferimenti = pd.DataFrame(riferimenti_raw)
-
-        # 👇 Aggiungi qui il debug visivo
-        st.write("📋 Causali lette:", riferimenti["Causale"].dropna().unique().tolist())
-        st.write("🏷️ Centri letti:", riferimenti["Centro di costo"].dropna().unique().tolist())
-        st.write("💰 Casse lette:", riferimenti["Cassa"].dropna().unique().tolist())
         
     except Exception as e:
         st.error("❌ Errore nel caricamento del foglio 'riferimenti'.")
