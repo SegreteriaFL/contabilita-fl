@@ -49,18 +49,6 @@ def download_pdf(text, nome_file):
         tmp.seek(0)
         st.download_button("📄 Scarica PDF", data=tmp.read(), file_name=nome_file, mime="application/pdf")
 
-def genera_ricevuta_pdf(d):
-    lines = [
-        "Ricevuta Donazione",
-        f"Data: {format_date(d['data'])}",
-        f"Importo: {format_currency(d['Importo'])}",
-        f"Causale: {d['Causale']}",
-        f"Centro di Costo: {d['Centro di Costo']}",
-        f"Metodo: {d['Cassa']}",
-        f"Note: {d['Note']}"
-    ]
-    return "\n".join(lines)
-
 # === Login simulato ===
 utenti = [
     {"nome": "Mario Rossi", "email": "mario@fl.org", "ruolo": "superadmin", "provincia": "Tutte"},
@@ -109,13 +97,7 @@ SHEET_NAME = "prima_nota_2024"
 def carica_movimenti():
     df = pd.DataFrame(client.open_by_url(SHEET_URL).worksheet(SHEET_NAME).get_all_records())
     df.columns = df.columns.str.strip()
-    if "Provincia" not in df.columns:
-        df["Provincia"] = ""
     df["Importo"] = pd.to_numeric(df["Importo"], errors="coerce").fillna(0)
-    df["data"] = pd.to_datetime(df["data"], errors="coerce")
-    df = df[df["data"].notna()]
-    if utente["ruolo"] == "tesoriere":
-        df = df[df["Provincia"] == utente["provincia"]]
     return df
 
 # === Import delle sezioni modulari ===
@@ -131,16 +113,4 @@ from sezioni import (
 
 # === Routing ===
 if sezione_attiva == "Prima Nota":
-    mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, download_excel)
-elif sezione_attiva == "Dashboard":
-    mostra_dashboard(carica_movimenti)
-elif sezione_attiva == "Rendiconto ETS":
-    mostra_rendiconto(carica_movimenti, format_currency, download_pdf)
-elif sezione_attiva == "Donazioni":
-    mostra_donazioni(carica_movimenti, format_currency, format_date, genera_ricevuta_pdf, download_pdf)
-elif sezione_attiva == "Quote associative":
-    mostra_quote()
-elif sezione_attiva == "Nuovo Movimento":
-    mostra_nuovo_movimento(utente, client, SHEET_URL, SHEET_NAME)
-elif sezione_attiva == "Saldo da Estratto Conto":  # Aggiungi questa sezione
-    mostra_situazione_conti(client, SHEET_URL, SHEET_NAME)
+    mostra_prima
