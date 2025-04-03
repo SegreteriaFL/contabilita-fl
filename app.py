@@ -118,7 +118,7 @@ def carica_movimenti():
         df = df[df["Provincia"] == utente["provincia"]]
     return df
 
-# === Import delle sezioni modulari ===
+# ✅ Import delle sezioni modulari aggiornato
 from sezioni import (
     mostra_prima_nota,
     mostra_dashboard,
@@ -126,9 +126,10 @@ from sezioni import (
     mostra_donazioni,
     mostra_quote,
     mostra_nuovo_movimento,
+    mostra_situazione_conti,  # Aggiunto import per la nuova sezione
 )
 
-# === Routing ===
+# === Routing aggiornato ===
 if sezione_attiva == "Prima Nota":
     mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, download_excel)
 elif sezione_attiva == "Dashboard":
@@ -141,3 +142,5 @@ elif sezione_attiva == "Quote associative":
     mostra_quote()
 elif sezione_attiva == "Nuovo Movimento":
     mostra_nuovo_movimento(utente, client, SHEET_URL, SHEET_NAME)
+elif sezione_attiva == "Saldo da Estratto Conto":
+    mostra_situazione_conti(client, SHEET_URL, SHEET_NAME)  # Aggiungi questa sezione
