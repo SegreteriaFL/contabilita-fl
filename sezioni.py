@@ -1,51 +1,10 @@
-# ✅ sezioni.py — Tutte le sezioni operative dell'app aggiornata
+# ✅ sezioni.py — versione compatibile con app.py originale
 import streamlit as st
 import plotly.express as px
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import date
-
-# Autenticazione Google
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-credentials = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
-client = gspread.authorize(credentials)
-
-# Utility centralizzata per caricare la Prima Nota
-@st.cache_data
-def carica_movimenti():
-    sheet = client.open("Prima Nota 2024").worksheet("Prima Nota")
-    df = pd.DataFrame(sheet.get_all_records())
-    df["data"] = pd.to_datetime(df["Data"], errors="coerce")
-    df["Importo"] = pd.to_numeric(df["Importo"], errors="coerce").fillna(0)
-    return df
-
-def format_currency(val):
-    return f"€ {val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
-def format_date(d):
-    return d.strftime("%d/%m/%Y") if pd.notnull(d) else ""
-
-def download_excel(df, filename):
-    import io
-    towrite = io.BytesIO()
-    df.to_excel(towrite, index=False)
-    st.download_button("⬇️ Scarica Excel", towrite.getvalue(), file_name=f"{filename}.xlsx")
-
-def download_pdf(testo, filename):
-    from fpdf import FPDF
-    import tempfile
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    for line in testo.split("\n"):
-        pdf.cell(200, 10, txt=line, ln=True)
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmpfile:
-        pdf.output(tmpfile.name)
-        st.download_button("⬇️ Scarica PDF", data=open(tmpfile.name, "rb"), file_name=filename)
-
-def genera_ricevuta_pdf(row):
-    return f"Ricevuta per donazione di {format_currency(row['Importo'])} in data {format_date(row['data'])}. Grazie!"
 
 def mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, download_excel):
     df = carica_movimenti()
@@ -74,33 +33,7 @@ def mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, do
     else:
         st.info("Nessun movimento disponibile.")
 
-def mostra_dashboard():
-    df = carica_movimenti()
-    st.subheader("📊 Dashboard")
-    if not df.empty:
-        df["mese"] = df["data"].dt.to_period("M").astype(str)
-        entrate = df[df["Importo"] > 0].groupby("mese")["Importo"].sum().reset_index()
-        uscite = df[df["Importo"] < 0].groupby("mese")["Importo"].sum().abs().reset_index()
-
-        col1, col2 = st.columns(2)
-        with col1:
-            st.plotly_chart(px.bar(entrate, x="mese", y="Importo", title="Entrate per mese"), use_container_width=True)
-        with col2:
-            st.plotly_chart(px.bar(uscite, x="mese", y="Importo", title="Uscite per mese"), use_container_width=True)
-
-        st.plotly_chart(
-            px.bar(
-                df.groupby("Centro di Costo")["Importo"].sum().reset_index(),
-                x="Centro di Costo",
-                y="Importo",
-                title="Totale per centro di costo"
-            ),
-            use_container_width=True
-        )
-    else:
-        st.info("Nessun dato disponibile.")
-
-def mostra_rendiconto():
+def mostra_rendiconto(carica_movimenti, format_currency, download_pdf):
     df = carica_movimenti()
     st.subheader("📄 Rendiconto ETS")
     if not df.empty:
@@ -112,7 +45,6 @@ def mostra_rendiconto():
         st.metric("Sezione B - Uscite", format_currency(uscite))
         st.metric("Saldo Finale", format_currency(saldo))
 
-        # Prova del 9
         saldi_bancari = {
             "Unicredit Nazionale": 82838.02,
             "Unicredit Fiume di Pace": 13277.98,
@@ -133,12 +65,12 @@ def mostra_rendiconto():
         else:
             st.error("Attenzione: il delta è diverso da 0!")
 
-        # PDF
-        download_pdf(f"Entrate: {format_currency(entrate)}\nUscite: {format_currency(uscite)}\nSaldo: {format_currency(saldo)}", "rendiconto_ets")
+        testo = f"Entrate: {format_currency(entrate)}\nUscite: {format_currency(uscite)}\nSaldo: {format_currency(saldo)}"
+        download_pdf(testo, "rendiconto_ets")
     else:
         st.info("Nessun dato disponibile.")
 
-def mostra_donazioni():
+def mostra_donazioni(carica_movimenti, format_currency, format_date, genera_ricevuta_pdf, download_pdf):
     df = carica_movimenti()
     st.subheader("❤️ Donazioni")
     df_don = df[df["Causale"].str.lower().str.contains("donazione", na=False)]
@@ -160,13 +92,13 @@ def mostra_quote():
     st.subheader("🧾 Quote associative")
     st.info("Funzionalità in sviluppo: collegamento con AppSheet previsto.")
 
-def mostra_nuovo_movimento(utente):
+def mostra_nuovo_movimento(utente, client, SHEET_URL, SHEET_NAME):
     st.subheader("➕ Nuovo Movimento")
     if utente["ruolo"] not in ["superadmin", "tesoriere"]:
         st.warning("Sezione riservata ai tesorieri e al superadmin.")
         return
 
-    riferimenti = pd.DataFrame(client.open("Prima Nota 2024").worksheet("riferimenti").get_all_records())
+    riferimenti = pd.DataFrame(client.open_by_url(SHEET_URL).worksheet("riferimenti").get_all_records())
     causali = riferimenti['Causale'].dropna().unique().tolist()
     centri = riferimenti['Centro di costo'].dropna().unique().tolist()
     casse = riferimenti['Cassa'].dropna().unique().tolist()
@@ -185,7 +117,7 @@ def mostra_nuovo_movimento(utente):
             if not causale or importo == 0:
                 st.error("Causale e importo sono obbligatori!")
             else:
-                ws = client.open("Prima Nota 2024").worksheet("Prima Nota")
+                ws = client.open_by_url(SHEET_URL).worksheet(SHEET_NAME)
                 nuova_riga = [
                     str(data_mov), causale, centro, importo,
                     descrizione, cassa, note, utente["provincia"]
