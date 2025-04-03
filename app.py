@@ -87,8 +87,8 @@ menu_style = {
 with st.sidebar:
     sezione_attiva = option_menu(
         menu_title="📂 Sezioni",
-        options=["Prima Nota", "Dashboard", "Rendiconto ETS", "Donazioni", "Quote associative", "Nuovo Movimento"],
-        icons=["file-earmark-text", "bar-chart", "clipboard-data", "gift", "people", "plus-circle"],
+        options=["Prima Nota", "Dashboard", "Rendiconto ETS", "Donazioni", "Quote associative", "Nuovo Movimento", "Saldo da Estratto Conto"],  # Aggiungi questa voce
+        icons=["file-earmark-text", "bar-chart", "clipboard-data", "gift", "people", "plus-circle", "bank"],  # Aggiungi l'icona per la nuova voce
         menu_icon="folder",
         default_index=0,
         styles=menu_style
@@ -118,7 +118,7 @@ def carica_movimenti():
         df = df[df["Provincia"] == utente["provincia"]]
     return df
 
-# ✅ Import delle sezioni modulari aggiornato
+# === Import delle sezioni modulari ===
 from sezioni import (
     mostra_prima_nota,
     mostra_dashboard,
@@ -126,10 +126,10 @@ from sezioni import (
     mostra_donazioni,
     mostra_quote,
     mostra_nuovo_movimento,
-    mostra_situazione_conti,  # Aggiunto import per la nuova sezione
+    mostra_situazione_conti,  # Aggiunta importazione per la nuova sezione
 )
 
-# === Routing aggiornato ===
+# === Routing ===
 if sezione_attiva == "Prima Nota":
     mostra_prima_nota(utente, carica_movimenti, format_currency, format_date, download_excel)
 elif sezione_attiva == "Dashboard":
@@ -142,5 +142,5 @@ elif sezione_attiva == "Quote associative":
     mostra_quote()
 elif sezione_attiva == "Nuovo Movimento":
     mostra_nuovo_movimento(utente, client, SHEET_URL, SHEET_NAME)
-elif sezione_attiva == "Saldo da Estratto Conto":
-    mostra_situazione_conti(client, SHEET_URL, SHEET_NAME)  # Aggiungi questa sezione
+elif sezione_attiva == "Saldo da Estratto Conto":  # Aggiungi questa sezione
+    mostra_situazione_conti(client, SHEET_URL, SHEET_NAME)
