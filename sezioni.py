@@ -180,6 +180,6 @@ def mostra_nuovo_movimento(utente, client, SHEET_URL, SHEET_NAME):
                 except Exception as e:
                     st.error("❌ Errore durante l'inserimento del movimento.")
                     st.exception(e)
-st.write("Causali lette:", causali)
-st.write("Centri letti:", centri)
-st.write("Casse lette:", casse)
+                    st.write("Causali lette:", causali)
+                    st.write("Centri letti:", centri)
+                    st.write("Casse lette:", casse)
