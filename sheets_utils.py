@@ -5,7 +5,7 @@ from google.oauth2.service_account import Credentials
 import pandas as pd
 import streamlit as st
 
-SHEET_NAME = "prima_nota_2024.xls"
+SHEET_NAME = "prima_nota_2024.xls"  # Nome esatto del file Google Sheet
 
 def get_gsheet_client():
     try:
