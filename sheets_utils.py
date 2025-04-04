@@ -1,9 +1,8 @@
 import gspread
+from google.oauth2.service_account import Credentials
+import streamlit as st
 import json
 import os
-from google.oauth2.service_account import Credentials
-import pandas as pd
-import streamlit as st
 
 SHEET_NAME = "Prima Nota 2024"
 
@@ -16,15 +15,14 @@ def get_gsheet_client():
         creds = Credentials.from_service_account_info(creds_dict, scopes=["https://www.googleapis.com/auth/spreadsheets"])
         return gspread.authorize(creds)
     except Exception as e:
-        st.error("Errore nella connessione a Google Sheets")
+        st.error(f"Errore nella connessione a Google Sheets: {e}")
         st.stop()
 
 def carica_riferimenti(client):
     try:
         sh = client.open(SHEET_NAME)
         ws = sh.worksheet("riferimenti")
-        df = pd.DataFrame(ws.get_all_records())
-        return df
+        return ws.get_all_records()
     except Exception as e:
-        st.warning("Impossibile caricare il foglio 'riferimenti'")
-        return pd.DataFrame()
+        st.warning(f"Impossibile caricare il foglio 'riferimenti': {e}")
+        return []
